@@ -2,7 +2,7 @@
 
 | Field      | Value                                        |
 |------------|----------------------------------------------|
-| Status     | Accepted                                     |
+| Status     | Implemented                                  |
 | Authors    | Claude (development lead), Berkan Aslan (PM) |
 | Created    | 2026-10-26                                   |
 | Depends on | RFC-0000                                     |
