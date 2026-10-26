@@ -26,7 +26,7 @@ The big picture lives in [RFC-0000](docs/rfcs/0000-vision-and-architecture.md); 
 - Merge into `develop` with `--no-ff`.
 - `main` only receives `develop` at release time, merged with `--no-ff` and tagged `vX.Y.Z`.
 - Commit only with the project owner's personal git identity, set in the repository's local git config. Never commit with any other identity configured on the machine; in a new clone, set `git config user.name` and `git config user.email` before the first commit.
-- Never commit personal or third-party data: email addresses, names or identifiers of other organisations, other teams' IDs, certificate fingerprints or local machine paths. The only identity data in the repository is the project's own team ID, bundle identifier and copyright line.
+- Never commit personal or affiliation data: email addresses, employers or clients, other teams' IDs, certificate fingerprints or local machine paths. Allowed: the project owner's name (copyright, RFC authorship, git identity), the project's team ID and the bundle identifier. Naming third-party apps as test targets (e.g. in a QA matrix) is fine.
 - Write Conventional Commits, e.g. `feat(session): reclaim focus after commit`.
 - Never push without the PM's explicit OK.
 
