@@ -15,4 +15,4 @@ An RFC records a design decision before it is implemented: what we build, why, a
 | RFC | Title | Status |
 |---|---|---|
 | [0000](0000-vision-and-architecture.md) | Vision, Principles and Architecture | Accepted |
-| [0001](0001-repository-foundations.md) | Repository Foundations | Accepted |
+| [0001](0001-repository-foundations.md) | Repository Foundations | Implemented |
