@@ -9,10 +9,13 @@
 | Cell | One rectangle of a layout's grid, bound to an action. |
 | Commit | Typing the buffer into the target app, followed by the commit key. |
 | Commit key | The keyboard key that triggers a commit — Return, Tab or an arrow. It is sent to the target app after the buffer and keeps its meaning there. |
+| Delivery wait | The pause after typing a commit, before Keypad reclaims focus or closes, so the posted keys reach the target app instead of Keypad (50 ms + 5 ms per keystroke). |
 | Hand-off | Giving focus back to the target app before typing: yield activation, activate the target, wait for its activation notification. |
 | HUD | The Liquid Glass overlay in the middle of the capture panel: target app, number display, key grid and hint. |
 | Layout | A grid of rows and columns whose cells map to actions, stored as data. |
+| Notice | A short, non-interactive message Keypad shows instead of opening a session, e.g. when secure input is on. |
 | Reclaim | Re-activating Keypad and its capture panel after a commit in a sticky session. |
-| Session | The time between opening Keypad with its shortcut and closing it with Esc, the shortcut, or a commit in a non-sticky session. |
+| Session | The time between opening Keypad with its shortcut and closing it with Esc, the shortcut, a commit in a non-sticky session, or another app becoming active. |
 | Sticky | The session mode, on by default, in which the session stays open after a commit. |
 | Target app | The app that was frontmost when the session started. Commits type into it. |
+| Transient overlay | A system screen that takes the keyboard and trackpad without activating another app, such as Spotlight or Mission Control. It does not end the session. |
