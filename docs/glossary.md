@@ -10,8 +10,11 @@
 | Commit | Typing the buffer into the target app, followed by the commit key. |
 | Commit key | The keyboard key that triggers a commit — Return, Tab or an arrow. It is sent to the target app after the buffer and keeps its meaning there. |
 | Delivery wait | The pause after typing a commit, before Keypad reclaims focus or closes, so the posted keys reach the target app instead of Keypad (50 ms + 5 ms per keystroke). |
+| Disabled | The state, set from the Dock menu or Settings, in which Keypad's shortcut is unregistered and its Dock icon is dimmed. It persists across launches. |
 | Hand-off | Giving focus back to the target app before typing: yield activation, activate the target, wait for its activation notification. |
+| Haptic pattern | One of the three system haptics Keypad can play on touch-down: Standard, Light or Pronounced. |
 | HUD | The Liquid Glass overlay in the middle of the capture panel: target app, number display, key grid and hint. |
+| Key sound | One of Keypad's four bundled sounds played when a tap completes: Wood (default), Soft, Deep or Crisp. |
 | Layout | A grid of rows and columns whose cells map to actions, stored as data. |
 | Notice | A short, non-interactive message Keypad shows instead of opening a session, e.g. when secure input is on. |
 | Reclaim | Re-activating Keypad and its capture panel after a commit in a sticky session. |

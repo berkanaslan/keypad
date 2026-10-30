@@ -140,12 +140,12 @@ Settings shows the permission state and offers the same recovery path if the per
 
 ### 8.7 Settings
 
-A SwiftUI `Settings` scene with Apple-standard tabs:
+A Settings window with Apple-standard tabs (RFC-0003 has the details):
 
 - **General**: Enable Keypad, Launch at login, shortcut recorder.
-- **Keypad**: layout (only "Numpad" in v1), active area, stay open after commit.
-- **Feedback**: haptics on or off, sound on or off; sound choice is decided in the feedback RFC.
-- **About**: version and acknowledgements.
+- **Keypad**: active area, stay open after commit. The layout picker comes with the layout editor (RFC-0008).
+- **Feedback**: haptics on or off with a pattern, key sound on or off with a choice of four sounds.
+- The version and copyright are in the standard About panel.
 
 ### 8.8 Platform behaviour
 
@@ -245,8 +245,8 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 |---|---|---|
 | 0001 | Repository foundations | Repo layout, Xcode project and package, signing, AGENTS.md, glossary, CI (build and test) |
 | 0002 | Keypad session | Hotkey, capture panel, touches → taps → cells, buffer, HUD, commit, sticky, focus hand-off |
-| 0003 | Feedback | Haptic patterns and sounds: choices and assets |
-| 0004 | Settings and lifecycle | Settings window, persistence, Dock menu and disabled state, launch at login, shortcut recorder, active-area editor |
+| 0003 | Feedback and settings | Haptic patterns and key sounds; Settings window, persistence, Dock menu and disabled state, launch at login, shortcut recorder, active-area editor |
+| 0004 | — | Merged into RFC-0003 by the PM on 2026-10-30 |
 | 0005 | Onboarding and permissions | First-run flow, permission states, recovery |
 | 0006 | App identity and localization | App icon (Icon Composer), Turkish completeness, App Store metadata |
 | 0007 | Release | Archive and upload pipeline, TestFlight, App Review consultation, pricing |
@@ -289,5 +289,5 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 - Settings grouping details.
 - Tap thresholds (movement under 0.04 of the trackpad and duration under 0.4 s worked in the spike) and the settle delay; tune them in RFC-0002.
 - Whether to close an idle session automatically; decide in RFC-0002.
-- Whether the shortcut recorder is built in-house or comes from a small open-source package; decide in RFC-0004.
+- Whether the shortcut recorder is built in-house or comes from a small open-source package; decided in RFC-0003 (in-house).
 - How the Xcode project is created and maintained; decide in RFC-0001.
