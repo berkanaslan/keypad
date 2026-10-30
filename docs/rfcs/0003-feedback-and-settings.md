@@ -2,7 +2,7 @@
 
 | Field      | Value                                        |
 |------------|----------------------------------------------|
-| Status     | Accepted                                     |
+| Status     | Implemented                                  |
 | Authors    | Claude (development lead), Berkan Aslan (PM) |
 | Created    | 2026-10-30                                   |
 | Depends on | RFC-0000, RFC-0002                           |
@@ -147,9 +147,8 @@ A control built in-house: no third-party dependency (AGENTS.md §9), and only a 
   - Dragging the rectangle moves it; dragging a corner resizes it.
   - The area can't leave the trackpad or shrink below 20 % (enforced in Core).
 - **Live touches:** while the Settings window is key, fingers on the trackpad show as dots in the preview, so users can see where the area lies on their physical trackpad.
-  - F2 was verified only for the full-screen capture panel. In Settings the pointer isn't frozen, and AppKit may deliver trackpad touches only to the view under the pointer.
-  - So a short spike comes before the editor. If touches reach any view in the window, a touch view covers the whole Keypad tab without blocking clicks or drags.
-  - If they can't be shown reliably, the live dots are dropped, and so is the footer's second sentence.
+  - A touch view lies on top of the Keypad tab and claims hit-testing only for trackpad touch events, so clicks, drags and scrolls still reach the controls. This mirrors the capture panel's top-most touch view (F2).
+  - Verified with the PM on a real trackpad (2026-10-30).
 - "Use Whole Trackpad" restores the default.
 - VoiceOver: the area is one adjustable element. Its value reads the size and position; increment and decrement resize it in 5 % steps.
 
@@ -219,6 +218,19 @@ Accessibility strings for the active-area editor are added with the editor, in b
   - the Settings window in dark mode and in Turkish;
   - VoiceOver on the editor.
 
+### QA results (2026-10-30, PM on a Force Touch trackpad)
+
+| Check | Result |
+|---|---|
+| Live touches in the active-area editor | Dots follow the fingers; clicks and drags still reach the editor. |
+| Active area and sticky off in a session | Only the chosen region types; with sticky off a commit closes the numpad. |
+| Key sounds and haptic patterns | Each previews when chosen, plays in a session, and stays silent when switched off. Standard stays the default haptic pattern (confirmed by the PM). |
+| Shortcut recorder | A new shortcut works; an invalid one shows the rule; Esc cancels; Reset restores ⌃⌥K; recording the current shortcut doesn't open a session. |
+| Open at login | The switch matches Login Items in System Settings. |
+| Dock menu and disabled state | Disable dims the icon and silences the shortcut; the state survives a relaunch. |
+| Dark mode and Turkish | Pass. |
+| Deferred to the next QA round (PM, 2026-10-30) | VoiceOver on the editor and the recorder; the "needs approval" login item state; a shortcut macOS refuses; an F-key shortcut on a laptop keyboard; Disable from the Dock menu with Settings open on General; dragging a corner past the preview's edge; recording, then switching to another app and pressing the shortcut there. |
+
 ## Alternatives considered
 
 | Alternative | Decision |
@@ -259,13 +271,15 @@ Accessibility strings for the active-area editor are added with the editor, in b
 7. Live-touch spike in the Settings window, then the active-area editor.
 8. QA as above. The PM picks the default haptic pattern; record the result here.
 
-Done when every unit test passes, the QA list passes, and lint and CI are green.
+Done when every unit test passes, the QA list passes, and lint and CI are green. On 2026-10-30 the PM moved the untested part of the list to the next QA round (see QA results).
 
 ## Open questions
 
-1. **Default haptic pattern:** the PM picks it by feel in QA. Until then, Standard.
-2. **Names:** are Wood, Soft, Deep and Crisp, and Standard, Light and Pronounced, the names the PM wants in Settings?
-3. **Development-lead calls the PM may overrule:**
+None. Settled on 2026-10-30:
+
+1. **Default haptic pattern:** Standard, confirmed by the PM after QA.
+2. **Names:** Wood, Soft, Deep and Crisp; Standard, Light and Pronounced, as accepted with this RFC.
+3. **Development-lead calls, accepted with this RFC:**
    - shortcuts need two modifiers including ⌘ or ⌃, or a function key;
    - no window at launch until RFC-0005;
    - no About tab;

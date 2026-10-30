@@ -9,7 +9,9 @@ public enum SessionState: Equatable, Sendable {
 public struct SessionEngine: Sendable {
     public private(set) var state: SessionState = .idle
 
-    private let configuration: SessionConfiguration
+    /// The configuration of the open session; a new one is adopted only when a session opens.
+    private var configuration: SessionConfiguration
+    private var nextConfiguration: SessionConfiguration
     private var recognizer = TapRecognizer()
     /// Set exactly while a session is open, that is in every state but `idle`.
     private var target: AppIdentity?
@@ -20,6 +22,11 @@ public struct SessionEngine: Sendable {
 
     public init(configuration: SessionConfiguration) {
         self.configuration = configuration
+        nextConfiguration = configuration
+    }
+
+    public mutating func configure(_ configuration: SessionConfiguration) {
+        nextConfiguration = configuration
     }
 
     public mutating func handle(_ event: SessionEvent) -> [SessionEffect] {
@@ -56,6 +63,7 @@ public struct SessionEngine: Sendable {
             return [.showNotice(.secureInput)]
         }
         target = frontmost
+        configuration = nextConfiguration
         canPostEvents = context.canPostEvents
         state = .capturing
         return [.showCapture(hud(target: frontmost))]
