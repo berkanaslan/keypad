@@ -5,9 +5,13 @@ import SwiftUI
 struct KeypadApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
+    /// SwiftUI needs a scene; the Settings window itself is AppKit and opens through `SettingsCommands`.
     var body: some Scene {
         Settings {
-            SettingsView()
+            EmptyView()
+        }
+        .commands {
+            SettingsCommands { appDelegate.showSettings() }
         }
     }
 }

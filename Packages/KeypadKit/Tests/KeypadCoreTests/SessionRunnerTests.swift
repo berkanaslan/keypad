@@ -262,6 +262,17 @@ enum ExitPath: CaseIterable {
         #expect(harness.keystrokes.sent == [[.commit(.tab)]])
     }
 
+    @Test func updatedConfigurationReachesTheNextSession() {
+        var notSticky = SessionConfiguration()
+        notSticky.isSticky = false
+        harness.runner.update(configuration: notSticky)
+        harness.runner.shortcutPressed()
+        harness.runner.receive(.commit(.tab))
+        harness.focus.completeHandOff(true)
+        harness.keystrokes.completeSend()
+        #expect(harness.runner.state == .idle)
+    }
+
     @Test func staleReclaimCompletionIsIgnored() {
         harness.runner.shortcutPressed()
         harness.runner.receive(.commit(.tab))

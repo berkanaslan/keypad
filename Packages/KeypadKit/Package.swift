@@ -14,7 +14,12 @@ let package = Package(
     ],
     targets: [
         .target(name: "KeypadCore", swiftSettings: strictSettings),
-        .target(name: "KeypadSystem", dependencies: ["KeypadCore"], swiftSettings: strictSettings),
+        .target(
+            name: "KeypadSystem",
+            dependencies: ["KeypadCore"],
+            resources: [.process("Resources")],
+            swiftSettings: strictSettings
+        ),
         .target(
             name: "KeypadUI",
             dependencies: ["KeypadCore"],
@@ -23,6 +28,6 @@ let package = Package(
         ),
         .testTarget(name: "KeypadCoreTests", dependencies: ["KeypadCore"], swiftSettings: strictSettings),
         .testTarget(name: "KeypadSystemTests", dependencies: ["KeypadSystem"], swiftSettings: strictSettings),
-        .testTarget(name: "KeypadUITests", dependencies: ["KeypadUI"], swiftSettings: strictSettings),
+        .testTarget(name: "KeypadUITests", dependencies: ["KeypadUI", "KeypadCore"], swiftSettings: strictSettings),
     ]
 )

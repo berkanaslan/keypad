@@ -324,6 +324,20 @@ private func lastRender(in effects: [SessionEffect]) -> HUDState? {
         #expect(engine.handle(.handOffFinished(succeeded: true)) == [])
     }
 
+    @Test mutating func newConfigurationAppliesFromTheNextSession() {
+        open(&engine)
+        var notSticky = SessionConfiguration()
+        notSticky.isSticky = false
+        engine.configure(notSticky)
+        tapSeven(&engine)
+        _ = engine.handle(.key(.commit(.tab)))
+        #expect(engine.handle(.handOffFinished(succeeded: true)).contains(.reclaimFocus))
+
+        _ = engine.handle(.interrupted)
+        commitSevenWithTab(&engine)
+        #expect(!engine.handle(.handOffFinished(succeeded: true)).contains(.reclaimFocus))
+    }
+
     @Test mutating func interruptionDuringReclaimCloses() {
         commitSevenWithTab(&engine)
         _ = engine.handle(.handOffFinished(succeeded: true))

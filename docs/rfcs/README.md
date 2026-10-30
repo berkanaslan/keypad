@@ -17,4 +17,4 @@ An RFC records a design decision before it is implemented: what we build, why, a
 | [0000](0000-vision-and-architecture.md) | Vision, Principles and Architecture | Accepted |
 | [0001](0001-repository-foundations.md) | Repository Foundations | Implemented |
 | [0002](0002-keypad-session.md) | Keypad Session | Implemented |
-| [0003](0003-feedback-and-settings.md) | Feedback and Settings | Accepted |
+| [0003](0003-feedback-and-settings.md) | Feedback and Settings | Implemented |

@@ -41,6 +41,11 @@ public final class SessionRunner {
         focus.onInterruption = { [weak self] in self?.send(.interrupted) }
     }
 
+    /// Takes effect when the next session opens.
+    public func update(configuration: SessionConfiguration) {
+        engine.configure(configuration)
+    }
+
     public func shortcutPressed() {
         guard !isDelivering else { return }
         send(
