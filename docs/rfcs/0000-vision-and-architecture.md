@@ -246,11 +246,11 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 | 0001 | Repository foundations | Repo layout, Xcode project and package, signing, AGENTS.md, glossary, CI (build and test) |
 | 0002 | Keypad session | Hotkey, capture panel, touches → taps → cells, buffer, HUD, commit, sticky, focus hand-off |
 | 0003 | Feedback and settings | Haptic patterns and key sounds; Settings window, persistence, Dock menu and disabled state, launch at login, shortcut recorder, active-area editor |
-| 0004 | — | Merged into RFC-0003 by the PM on 2026-10-30 |
+| 0004 | Open source release | MIT licence, privacy scrub, Developer ID signing and notarization, GitHub Releases, Homebrew tap, README as product page, app icon (absorbs 0006 and 0007) |
 | 0005 | Onboarding and permissions | First-run flow, permission states, recovery |
-| 0006 | App identity and localization | App icon (Icon Composer), Turkish completeness, App Store metadata |
-| 0007 | Release | Archive and upload pipeline, TestFlight, App Review consultation, pricing |
-| — | **1.0** | Proposed release cut after RFC-0007; the PM decides |
+| 0006 | — | Merged into RFC-0004 |
+| 0007 | — | Merged into RFC-0004 |
+| — | **1.0** | Proposed release cut after RFC-0005; the PM decides |
 | 0008 | Layout editor | Custom grids with drag and drop |
 | 0009 | Calculator layout | Arithmetic with `Decimal`, live result in the HUD |
 | 0010 | Per-app layouts | User-assigned layout per frontmost app |
