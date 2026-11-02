@@ -170,7 +170,7 @@
 
 ### Task 5: Homebrew tap
 
-**Files (new repository at `~/Repositories/berkan/homebrew-tap`):**
+**Files (new repository `homebrew-tap`, checked out next to this one):**
 - Create: `Casks/keypad.rb` (RFC-0004 §4, with `sha256 :no_check` until Task 9 fills it in), `README.md` (one paragraph and the install command).
 
 **Steps:**

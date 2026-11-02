@@ -6,6 +6,7 @@
 | Active area | The part of the physical trackpad, stored as a normalized rectangle, that maps onto the layout. Touches outside it are ignored. |
 | Buffer | The number being entered during a session. It is shown in the HUD and typed into the target app on commit. |
 | Capture panel | The full-screen key panel Keypad shows during a session. It receives trackpad touches and swallows pointer input so nothing reaches the app underneath. |
+| Cask | The Homebrew recipe that installs Keypad: `Casks/keypad.rb` in the tap, pointing at a release's DMG and its SHA-256. |
 | Cell | One rectangle of a layout's grid, bound to an action. |
 | Commit | Typing the buffer into the target app, followed by the commit key. |
 | Commit key | The keyboard key that triggers a commit — Return, Tab or an arrow. It is sent to the target app after the buffer and keeps its meaning there. |
@@ -20,5 +21,6 @@
 | Reclaim | Re-activating Keypad and its capture panel after a commit in a sticky session. |
 | Session | The time between opening Keypad with its shortcut and closing it with Esc, the shortcut, a commit in a non-sticky session, or another app becoming active. |
 | Sticky | The session mode, on by default, in which the session stays open after a commit. |
+| Tap | The Homebrew repository `berkanaslan/homebrew-tap` that holds Keypad's cask. |
 | Target app | The app that was frontmost when the session started. Commits type into it. |
 | Transient overlay | A system screen that takes the keyboard and trackpad without activating another app, such as Spotlight or Mission Control. It does not end the session. |
