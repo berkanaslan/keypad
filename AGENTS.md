@@ -118,7 +118,7 @@ Unsigned build (what CI runs):
 xcodebuild -project Keypad.xcodeproj -scheme Keypad -configuration Debug -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-Release (maintainer only, on `main` at tag `vX.Y.Z`; `--dry-run` signs and notarizes without publishing):
+Release (maintainer only, on `main` at tag `vX.Y.Z`, with `main` and the tag pushed; `--dry-run` signs and notarizes HEAD without publishing; `--tap-only` repeats just the cask update):
 
 ```bash
 scripts/release.sh X.Y.Z
