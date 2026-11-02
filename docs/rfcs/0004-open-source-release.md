@@ -2,7 +2,7 @@
 
 | Field      | Value                                        |
 |------------|----------------------------------------------|
-| Status     | Accepted                                     |
+| Status     | Implemented                                  |
 | Authors    | Claude (development lead), Berkan Aslan (PM) |
 | Created    | 2026-10-30                                   |
 | Depends on | RFC-0000, RFC-0003                           |
@@ -34,6 +34,11 @@ This RFC amends RFC-0000 (G8, §4, §6, §11–§14) and AGENTS.md, and absorbs 
 4. The README is the product page, to the standard of well-known Homebrew-installed apps.
 5. If needed, a page at keypad.berkan.io, built inside the `berkanio` repository.
 6. The Aluminum icon (direction A on the "Keypad App Icon" canvas) ships as the app icon.
+
+Added on 2026-11-02, before the repository went public:
+
+7. Every branch merged into `develop` carries exactly one commit.
+8. Nothing in the files or the history describes the development Mac, the Apple account beyond the team ID, or the PM's job. The team ID stays, because every signed release shows it anyway.
 
 ## Design
 
@@ -78,14 +83,15 @@ The App Sandbox stays. It is least privilege, costs nothing, and keeps a future 
 - **Keep design documents public.** Swift Evolution, Rust's RFCs and architecture decision records are all public, because the reasoning is as valuable as the code. Our RFCs, plans and glossary stay.
 - **AGENTS.md stays.** It is now an open standard that tens of thousands of repositories ship. Its owner-specific parts (the local signing override, "the owner's personal identity") become contributor rules.
 - **Fix commit emails before the first publication**, while nobody has cloned the repository.
-  - Rewrite every commit, on all branches and tags, with `git filter-repo --mailmap`.
+  - Rewrite every commit, on all branches and tags, with `git filter-repo`: `--mailmap` for the emails, `--replace-text` for machine-specific details (decision 8).
   - The new author and committer email is GitHub's no-reply address for the account, `42192003+berkanaslan@users.noreply.github.com`. The name stays.
-  - Make a backup bundle first; force-push `main` and `develop` once, with the PM's OK at that moment.
+  - Squash every merged branch to one commit (decision 7).
+  - Make a backup bundle first. With the PM's OK, delete the GitHub repository and push the rewritten history to a new one, so no old commit stays reachable online.
 - **Keep it that way.** The repo-local git config uses the no-reply address. On GitHub, the PM turns on "Keep my email addresses private" and "Block command line pushes that expose my email".
 - **Scan again after the rewrite**, then flip the repository to public:
   - the same searches as above, on the rewritten history;
   - a secret scan with `gitleaks`, run locally and not added to the project.
-- **Workflow runs** recorded before the rewrite are deleted.
+- **Workflow runs** recorded before the rewrite go with the old repository.
 
 ### 3. Signing and notarization
 
@@ -96,11 +102,11 @@ The App Sandbox stays. It is least privilege, costs nothing, and keeps a future 
 
   These are Apple's notarization requirements. Accessibility (PostEvent) needs no extra entitlement under the Hardened Runtime.
 - **One command, `scripts/release.sh <version>`, run on the PM's Mac:**
-  1. Check that the tag, the project's version and a clean `main` agree.
-  2. Archive the Release build and export it with the Developer ID method.
+  1. Check that the tag (locally, on GitHub and in GitHub's `main`), the project's version and a clean `main` agree, that the release doesn't exist yet, and that the tap is clean on `main`.
+  2. Archive the Release build from a clean export of the tag, so no uncommitted file gets in, and export it with the Developer ID method.
   3. Build `Keypad-<version>.dmg` (the app and an Applications link) and sign it.
   4. Submit with `xcrun notarytool submit … --keychain-profile keypad-notary --wait`, staple with `xcrun stapler staple`, and verify with `spctl --assess`.
-  5. Create the GitHub Release with `gh release create v<version>`, upload the DMG, and update the tap's cask (§4) with the new version and SHA-256, committed for the PM to push.
+  5. Create the GitHub Release with `gh release create v<version> --verify-tag` and upload the DMG. Then download it back, check that the release is published and the file is signed by our team and notarized, and update the tap's cask (§4) with the new version and that file's SHA-256, committed for the PM to push. If this last step fails, `--tap-only` repeats it.
 - **Credentials never enter the repository or CI.** The certificate lives in the PM's keychain. The notarization key is stored once with `xcrun notarytool store-credentials keypad-notary`.
 - **CI** keeps building and testing unsigned. Signing in CI can come later.
 
@@ -133,6 +139,8 @@ cask "keypad" do
   depends_on macos: :tahoe
 
   app "Keypad.app"
+
+  uninstall quit: "io.berkan.keypad"
 
   zap trash: [
     "~/Library/Application Scripts/io.berkan.keypad",
@@ -199,7 +207,7 @@ Each of these needs the PM's own accounts or approval:
 1. Create a **Developer ID Application** certificate (Xcode › Settings › Accounts › Manage Certificates; only the Account Holder can).
 2. Create an **App Store Connect API key** (Users and Access › Integrations › Team Keys, Developer role), then run the `notarytool store-credentials` command the release script prints.
 3. On GitHub, turn on **"Keep my email addresses private"** and **"Block command line pushes that expose my email"**.
-4. Approve the one **history rewrite and force-push**.
+4. Approve the one **history rewrite and the repository's recreation**.
 5. Make **`keypad` public**, and approve creating **`homebrew-tap`**.
 6. Record the **demo GIF**.
 7. Optional: the **DNS record** for keypad.berkan.io.
@@ -213,13 +221,24 @@ Each of these needs the PM's own accounts or approval:
   - `brew uninstall --zap` removes the app and its container.
 - **Privacy:** the scan, re-run on the rewritten history, finds nothing before the repository goes public.
 
+### Release results (2026-11-02)
+
+| Check | Result |
+|---|---|
+| History before publication | Commit emails rewritten to the no-reply address. Machine-specific details replaced across all commits. Every merged branch squashed to one commit: `develop` went from 97 to 25 commits with the same final content. The old GitHub repository was deleted and recreated, so no old commits or workflow runs remain online. `gitleaks` found nothing. |
+| `v0.1.0` | Notarization accepted, ticket stapled. The DMG downloaded from the public release matches the cask's SHA-256, and Gatekeeper accepts it as "Notarized Developer ID". |
+| Homebrew | `brew install --cask berkanaslan/tap/keypad` installs Keypad, which opens without a Gatekeeper warning (PM, on their own account after removing the development builds). |
+| Accessibility after install | Seen by the PM on the first install: after granting access, the panel still said Keypad needs Accessibility access, and a commit typed nothing. Two causes, both for RFC-0005. First, macOS checks a grant against the code signature of the build that was granted, so the grant left over from a development build didn't cover the release; the PM removed it and granted again. Second, `CGPreflightPostEventAccess` keeps its first answer for the life of the process, so Keypad needs a relaunch after the grant (TCC log, confirmed by the PM); the README now says so. Still open: whether posting works before the relaunch and only the check is stale, and whether the grant survives an update from one Developer ID release to the next. |
+| Final review | Every review focus held. Hardening done in v0.1.1, in `scripts/release.sh`: build from a clean checkout of the tag, because untracked files under `Keypad/` and `Packages/` would be compiled in; pass `--verify-tag`, with the tag checked on the remote; stop if the release already exists, and update the tap from the uploaded DMG's hash; check the tap before publishing and the cask after editing it; reject unknown arguments. In the cask: `uninstall quit:`, so an upgrade doesn't leave the old copy running. Not done: comparing the tap with GitHub before publishing, since a stale tap only delays the push; choosing the signing certificate by hash, needed only once two valid certificates exist. |
+| Deferred | `brew audit --cask`, not run yet: it needs current Command Line Tools; `brew style` passes. The install and `brew uninstall --zap` check on a clean user account. keypad.berkan.io. A layered Icon Composer icon. Replacing `hdiutil create`, deprecated on macOS 27. Stapling the app inside the DMG as well as the DMG. |
+
 ## Alternatives considered
 
 | Alternative | Decision |
 |---|---|
 | Keep aiming for the Mac App Store | Rejected: 2026 rejections of exactly this behaviour, no exceptions. |
 | Paid download outside the App Store (licence keys) | Rejected: the PM wants it free; licence checks would also need the network. |
-| Publish one squashed commit instead of the history | Rejected: it loses the RFC-by-RFC record, and the content is clean; only emails change. |
+| Publish one squashed commit instead of the history | Rejected: it loses the RFC-by-RFC record. The rewrite keeps one commit per merged branch and changes only emails and machine-specific details. |
 | Sparkle auto-updates | Rejected: needs the network and an appcast; `brew upgrade` covers updates. |
 | Sign and notarize in GitHub Actions | Later: keeping secrets on the PM's Mac is simpler and safer for now. |
 | Submit to the official `homebrew/cask` now | Not eligible yet (age, notability); the cask is ready for it. |
@@ -244,7 +263,7 @@ Each of these needs the PM's own accounts or approval:
 3. README and `docs/assets/`. The PM records the demo.
 4. `scripts/release.sh`. The PM creates the certificate and the API key, then a dry run that notarizes without publishing.
 5. The `homebrew-tap` repository and `Casks/keypad.rb`.
-6. The privacy rewrite and scan; the PM approves the force-push and makes `keypad` public.
+6. The privacy rewrite and scan; the PM approves recreating the repository and makes `keypad` public.
 7. Release `v0.1.0`; verify the Homebrew install on a clean account.
 8. Optional: keypad.berkan.io in `berkanio`.
 

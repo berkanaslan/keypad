@@ -23,7 +23,7 @@ The big picture lives in [RFC-0000](docs/rfcs/0000-vision-and-architecture.md); 
 ## 4. Git
 
 - Create a branch from `develop` before the first commit: `feature/…`, `bugfix/…`, `chore/…`, `refactor/…` or `docs/…`.
-- Merge into `develop` with `--no-ff`.
+- Before merging, squash the branch into one Conventional Commit whose body lists the work, then merge it into `develop` with `--no-ff`, so every merge brings exactly one commit.
 - `main` only receives `develop` at release time, merged with `--no-ff` and tagged `vX.Y.Z`.
 - Commit with a GitHub no-reply address (`<id>+<username>@users.noreply.github.com`), set in the repository's local git config; the maintainer's is `42192003+berkanaslan@users.noreply.github.com`. Never commit with any other identity configured on the machine; in a new clone, set `git config user.name` and `git config user.email` before the first commit.
 - Never commit personal or affiliation data: email addresses, employers or clients, other teams' IDs, certificate fingerprints or local machine paths. Allowed: the project owner's name (copyright, RFC authorship, git identity), GitHub no-reply addresses, the project's team ID and the bundle identifier. Naming third-party apps as test targets (e.g. in a QA matrix) is fine.
@@ -118,7 +118,7 @@ Unsigned build (what CI runs):
 xcodebuild -project Keypad.xcodeproj -scheme Keypad -configuration Debug -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-Release (maintainer only, on `main` at tag `vX.Y.Z`; `--dry-run` signs and notarizes without publishing):
+Release (maintainer only, on `main` at tag `vX.Y.Z`, with `main` and the tag pushed; `--dry-run` signs and notarizes HEAD without publishing; `--tap-only` repeats just the cask update):
 
 ```bash
 scripts/release.sh X.Y.Z
