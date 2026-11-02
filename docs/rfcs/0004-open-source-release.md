@@ -102,11 +102,11 @@ The App Sandbox stays. It is least privilege, costs nothing, and keeps a future 
 
   These are Apple's notarization requirements. Accessibility (PostEvent) needs no extra entitlement under the Hardened Runtime.
 - **One command, `scripts/release.sh <version>`, run on the PM's Mac:**
-  1. Check that the tag, the project's version and a clean `main` agree.
-  2. Archive the Release build and export it with the Developer ID method.
+  1. Check that the tag (locally, on GitHub and in GitHub's `main`), the project's version and a clean `main` agree, that the release doesn't exist yet, and that the tap is clean on `main`.
+  2. Archive the Release build from a clean export of the tag, so no uncommitted file gets in, and export it with the Developer ID method.
   3. Build `Keypad-<version>.dmg` (the app and an Applications link) and sign it.
   4. Submit with `xcrun notarytool submit … --keychain-profile keypad-notary --wait`, staple with `xcrun stapler staple`, and verify with `spctl --assess`.
-  5. Create the GitHub Release with `gh release create v<version>`, upload the DMG, and update the tap's cask (§4) with the new version and SHA-256, committed for the PM to push.
+  5. Create the GitHub Release with `gh release create v<version> --verify-tag` and upload the DMG. Then download it back, check that the release is published and the file is signed by our team and notarized, and update the tap's cask (§4) with the new version and that file's SHA-256, committed for the PM to push. If this last step fails, `--tap-only` repeats it.
 - **Credentials never enter the repository or CI.** The certificate lives in the PM's keychain. The notarization key is stored once with `xcrun notarytool store-credentials keypad-notary`.
 - **CI** keeps building and testing unsigned. Signing in CI can come later.
 
@@ -139,6 +139,8 @@ cask "keypad" do
   depends_on macos: :tahoe
 
   app "Keypad.app"
+
+  uninstall quit: "io.berkan.keypad"
 
   zap trash: [
     "~/Library/Application Scripts/io.berkan.keypad",
@@ -227,8 +229,8 @@ Each of these needs the PM's own accounts or approval:
 | `v0.1.0` | Notarization accepted, ticket stapled. The DMG downloaded from the public release matches the cask's SHA-256, and Gatekeeper accepts it as "Notarized Developer ID". |
 | Homebrew | `brew install --cask berkanaslan/tap/keypad` installs Keypad, which opens without a Gatekeeper warning (PM, on their own account after removing the development builds). |
 | Accessibility after install | Seen by the PM on the first install: after granting access, the panel still said Keypad needs Accessibility access, and a commit typed nothing. Two causes, both for RFC-0005. First, macOS checks a grant against the code signature of the build that was granted, so the grant left over from a development build didn't cover the release; the PM removed it and granted again. Second, `CGPreflightPostEventAccess` keeps its first answer for the life of the process, so Keypad needs a relaunch after the grant (TCC log, confirmed by the PM); the README now says so. Still open: whether posting works before the relaunch and only the check is stale, and whether the grant survives an update from one Developer ID release to the next. |
-| Final review | Every review focus held. Hardening for v0.1.1, in `scripts/release.sh`: build from a clean checkout of the tag, because untracked files under `Keypad/` and `Packages/` would be compiled in; pass `--verify-tag`, with the tag checked on the remote; stop if the release already exists, and update the tap from the uploaded DMG's hash; check the tap before publishing and the cask after editing it; reject unknown arguments. In the cask: `uninstall quit:`, so an upgrade doesn't leave the old copy running. |
-| Deferred | `brew audit --cask`, not run yet; due before v0.1.1. The install and `brew uninstall --zap` check on a clean user account. keypad.berkan.io. A layered Icon Composer icon. Replacing `hdiutil create`, deprecated on macOS 27. Stapling the app inside the DMG as well as the DMG. |
+| Final review | Every review focus held. Hardening done in v0.1.1, in `scripts/release.sh`: build from a clean checkout of the tag, because untracked files under `Keypad/` and `Packages/` would be compiled in; pass `--verify-tag`, with the tag checked on the remote; stop if the release already exists, and update the tap from the uploaded DMG's hash; check the tap before publishing and the cask after editing it; reject unknown arguments. In the cask: `uninstall quit:`, so an upgrade doesn't leave the old copy running. Not done: comparing the tap with GitHub before publishing, since a stale tap only delays the push; choosing the signing certificate by hash, needed only once two valid certificates exist. |
+| Deferred | `brew audit --cask`, not run yet: it needs current Command Line Tools; `brew style` passes. The install and `brew uninstall --zap` check on a clean user account. keypad.berkan.io. A layered Icon Composer icon. Replacing `hdiutil create`, deprecated on macOS 27. Stapling the app inside the DMG as well as the DMG. |
 
 ## Alternatives considered
 
