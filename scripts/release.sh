@@ -30,7 +30,7 @@ marketing_versions=$(grep -o 'MARKETING_VERSION = [^;]*' Keypad.xcodeproj/projec
 [[ $marketing_versions == "$version" ]] || fail "MARKETING_VERSION is '$marketing_versions', expected $version"
 
 if ! $dry_run; then
-  [[ -z $(git status --porcelain) ]] || fail "the working tree is not clean"
+  [[ -z $(git status --porcelain --untracked-files=no) ]] || fail "tracked files have uncommitted changes"
   [[ $(git branch --show-current) == "main" ]] || fail "releases are cut from main"
   [[ $(git rev-parse -q --verify "refs/tags/v$version^{commit}" || true) == "$(git rev-parse HEAD)" ]] ||
     fail "tag v$version must exist and point at HEAD"
