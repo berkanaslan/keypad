@@ -42,13 +42,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "© 2026 Berkan Aslan. All rights reserved."
+            "value" : "© 2026 Berkan Aslan. MIT License."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "© 2026 Berkan Aslan. Tüm hakları saklıdır."
+            "value" : "© 2026 Berkan Aslan. MIT Lisansı."
           }
         }
       }
