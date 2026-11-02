@@ -6,6 +6,7 @@
 | Authors    | Claude (development lead), Berkan Aslan (PM) |
 | Created    | 2026-10-26                                   |
 | Depends on | RFC-0000                                     |
+| Amended by | RFC-0004: MIT open source outside the Mac App Store; the planned RFC-0006 and RFC-0007 became part of it |
 
 ## 1. Summary
 
@@ -116,7 +117,7 @@ Entitlements: `com.apple.security.app-sandbox` only. No network, file access or 
 
 - GitHub Actions workflow `.github/workflows/ci.yml`.
 - Triggers: pushes to `develop` and `main`, and pull requests into them. Feature branches are not built on push, to save macOS minutes.
-- Runner: GitHub's `xcode-27` preview image (macOS 27, arm64) with Xcode 27.0 (27A266a, the local build) selected explicitly. The `macos-26` image ships only Xcode 26.x; switch to it once it carries Xcode 27.
+- Runner: GitHub's `xcode-27` preview image (macOS 27, arm64) with Xcode 27.0 (27A266a) selected explicitly. The `macos-26` image ships only Xcode 26.x; switch to it once it carries Xcode 27.
 - Steps: lint → package tests → unsigned app build.
 - Cost: the repository is private, so macOS minutes count ten times against the plan's quota. One run should take about five minutes.
 - Xcode Cloud is reconsidered in RFC-0007 for release builds; it needs an App Store Connect app record first.

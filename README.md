@@ -37,6 +37,7 @@ Or download the latest `Keypad-<version>.dmg` from [Releases](https://github.com
 **First launch:**
 - macOS asks to let Keypad control your computer. Keypad needs this Accessibility permission to type the number into other apps.
 - If you dismissed the prompt, open **System Settings › Privacy & Security › Accessibility** and turn Keypad on.
+- Then quit Keypad (⌘Q, or Quit in its Dock menu) and open it again. Keypad picks up the permission when it starts.
 
 Requires macOS 26 Tahoe or later, and a built-in trackpad or a Magic Trackpad.
 
@@ -51,7 +52,7 @@ Requires macOS 26 Tahoe or later, and a built-in trackpad or a Magic Trackpad.
 | Return, ⇧Return, keypad Enter | Types the number, then that key |
 | Tab, ⇧Tab | Types the number, then that key: next or previous cell |
 | ← ↑ → ↓ | Types the number, then that arrow |
-| ⌃⌥K again | Types the number and closes |
+| The shortcut again | Types the number and closes |
 | Esc | Closes without typing |
 
 Keypad stays open after Return, Tab or an arrow, ready for the next number, so you can fill a whole spreadsheet column without lifting your hands. A commit with no number still sends its key, so you can skip cells.
@@ -59,7 +60,7 @@ Keypad stays open after Return, Tab or an arrow, ready for the next number, so y
 ## Features
 
 - **Works everywhere:** native apps, browsers, Electron apps and spreadsheets.
-- **Your trackpad, your layout:** choose which part of the trackpad acts as the keypad.
+- **Your part of the trackpad:** choose which area acts as the keypad.
 - **Your shortcut:** record two modifiers, one of them ⌘ or ⌃, with a key, or a function key.
 - **Feedback you can feel:** four key sounds and three haptic patterns, each switchable.
 - **Your decimal separator:** the keypad shows and types `,` or `.` to match your keyboard layout.
