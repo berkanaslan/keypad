@@ -182,9 +182,9 @@ Assets live in `docs/assets/`. English only for now (open question 4).
 
 ### 8. App icon
 
-- **Asset:** the Aluminum artboard's 1024 px rendering, exported to the ten macOS sizes in `Keypad/Resources/Assets.xcassets/AppIcon.appiconset`.
+- **Asset:** a full-bleed square version of the Aluminum design (PM, 2026-10-30), kept as `docs/assets/icon.png` and exported by `Tools/AppIcon/render.sh` to the ten macOS sizes in `Keypad/Resources/Assets.xcassets/AppIcon.appiconset`.
+  - It fills the whole square with no rounded corners or shadow of its own; macOS applies its own icon mask.
   - PNG is a format Apple's guidelines allow.
-  - Canvas defaults: accent `#0A84FF`, skin `#F2B18F`, separator `,`.
 - The same image, at 256 px, heads the README and the page.
 - A layered Icon Composer version (Liquid Glass, dark and tinted appearances) is a later follow-up.
 - **Known risk, accepted by the PM:**

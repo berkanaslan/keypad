@@ -4,7 +4,7 @@ Rules for every agent and contributor working in this repository.
 
 ## 1. Product
 
-Keypad for Mac turns the Mac trackpad into a temporary numeric keypad: in any app the user presses a shortcut, taps numbers on the trackpad, and the number is typed into the field they were working in. It ships on the Mac App Store as a one-time paid, fully offline, fully native macOS app.
+Keypad for Mac turns the Mac trackpad into a temporary numeric keypad: in any app the user presses a shortcut, taps numbers on the trackpad, and the number is typed into the field they were working in. It is free, MIT-licensed open source, installed with Homebrew from the project's own tap, and fully offline and fully native. It is not on the Mac App Store (RFC-0004).
 
 The big picture lives in [RFC-0000](docs/rfcs/0000-vision-and-architecture.md); domain terms in the [glossary](docs/glossary.md).
 
@@ -25,8 +25,8 @@ The big picture lives in [RFC-0000](docs/rfcs/0000-vision-and-architecture.md); 
 - Create a branch from `develop` before the first commit: `feature/…`, `bugfix/…`, `chore/…`, `refactor/…` or `docs/…`.
 - Merge into `develop` with `--no-ff`.
 - `main` only receives `develop` at release time, merged with `--no-ff` and tagged `vX.Y.Z`.
-- Commit only with the project owner's personal git identity, set in the repository's local git config. Never commit with any other identity configured on the machine; in a new clone, set `git config user.name` and `git config user.email` before the first commit.
-- Never commit personal or affiliation data: email addresses, employers or clients, other teams' IDs, certificate fingerprints or local machine paths. Allowed: the project owner's name (copyright, RFC authorship, git identity), the project's team ID and the bundle identifier. Naming third-party apps as test targets (e.g. in a QA matrix) is fine.
+- Commit with a GitHub no-reply address (`<id>+<username>@users.noreply.github.com`), set in the repository's local git config; the maintainer's is `42192003+berkanaslan@users.noreply.github.com`. Never commit with any other identity configured on the machine; in a new clone, set `git config user.name` and `git config user.email` before the first commit.
+- Never commit personal or affiliation data: email addresses, employers or clients, other teams' IDs, certificate fingerprints or local machine paths. Allowed: the project owner's name (copyright, RFC authorship, git identity), GitHub no-reply addresses, the project's team ID and the bundle identifier. Naming third-party apps as test targets (e.g. in a QA matrix) is fine.
 - Write Conventional Commits, e.g. `feat(session): reclaim focus after commit`.
 - Never push without the PM's explicit OK.
 
@@ -58,7 +58,9 @@ The big picture lives in [RFC-0000](docs/rfcs/0000-vision-and-architecture.md); 
 
 - Sign only with the team pinned in the project, `4HYL3L2W4Z`.
 - Never use any other team, identity, certificate or account.
-- Until the project owner's Apple developer account is added in Xcode → Settings → Accounts, sign local command-line builds with `CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Development" DEVELOPMENT_TEAM=4HYL3L2W4Z`. Never commit these overrides.
+- Local signed builds use Apple Development with the override in §10. Never commit the override.
+- Releases use a Developer ID Application certificate and are built only by `scripts/release.sh` on the maintainer's Mac, which notarizes them. Signing credentials never enter the repository or CI.
+- Contributors without access to the team build unsigned (§10).
 - After every signed build, verify the team (§10). Anything other than `TeamIdentifier=4HYL3L2W4Z` is a stop.
 
 ## 8. Localization
@@ -114,6 +116,12 @@ Unsigned build (what CI runs):
 
 ```bash
 xcodebuild -project Keypad.xcodeproj -scheme Keypad -configuration Debug -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+```
+
+Release (maintainer only, on `main` at tag `vX.Y.Z`; `--dry-run` signs and notarizes without publishing):
+
+```bash
+scripts/release.sh X.Y.Z
 ```
 
 ## 11. Definition of done

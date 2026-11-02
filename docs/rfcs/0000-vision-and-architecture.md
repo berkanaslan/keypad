@@ -8,7 +8,7 @@
 
 ## 1. Summary
 
-Keypad for Mac turns the Mac trackpad into a temporary numeric keypad. In any app, the user presses a shortcut, taps numbers on the trackpad, and the number is typed into the field they were working in. It ships on the Mac App Store as a one-time paid, fully offline, fully native macOS app.
+Keypad for Mac turns the Mac trackpad into a temporary numeric keypad. In any app, the user presses a shortcut, taps numbers on the trackpad, and the number is typed into the field they were working in. It ships as free, MIT-licensed open source, installed with Homebrew, fully offline and fully native. It was first planned for the Mac App Store; RFC-0004 moved it outside.
 
 This RFC is the umbrella design: intent, scope, constraints, the technical foundation verified by a spike, the v1 user experience, the architecture, the engineering process and the roadmap of follow-up RFCs. Every roadmap item gets its own RFC before implementation.
 
@@ -27,7 +27,7 @@ Success: someone who has never seen the app installs it, grants one permission, 
 - **G5** Haptic and sound feedback, both on by default, each switchable.
 - **G6** Native Liquid Glass UI in light and dark mode, in English and Turkish.
 - **G7** A Dock app with launch at login (with consent) and a Dock menu to disable and enable it.
-- **G8** Mac App Store compliant: sandboxed, public APIs only, no network.
+- **G8** Free, MIT-licensed open source, distributed outside the Mac App Store: Developer ID-signed, notarized, installed with Homebrew. Still sandboxed, public APIs only, no network (RFC-0004).
 
 ## 4. Non-goals (v1)
 
@@ -35,7 +35,7 @@ Success: someone who has never seen the app installs it, grants one permission, 
 - Live typing into the target app while the session is open (verified unreliable in Chrome, see F5).
 - A scientific calculator. The later calculator RFC is scoped to arithmetic: + − × ÷, precedence, optionally parentheses and percent, computed with `Decimal`.
 - App-specific behaviour built by us. Users may assign layouts to apps in a later RFC.
-- In-app purchases, subscriptions or trials.
+- Any revenue path: purchases, licence keys, donation links or sponsorship.
 - A menu bar extra. The app lives in the Dock.
 - Analytics, telemetry, accounts or any network access.
 - Languages beyond English and Turkish.
@@ -45,7 +45,7 @@ Success: someone who has never seen the app installs it, grants one permission, 
 Keypad fails, even if it technically works, if it:
 
 - looks custom-drawn instead of like something Apple made;
-- uses private APIs or anything else that puts App Store eligibility at risk;
+- uses private APIs or leaves the App Sandbox;
 - interferes with normal trackpad use when no session is open;
 - leaves focus in the wrong app, loses a typed number or types into the wrong field;
 - hides what the user typed (the display never truncates);
@@ -55,7 +55,7 @@ Keypad fails, even if it technically works, if it:
 
 | Area | Constraint |
 |---|---|
-| Distribution | Mac App Store; App Sandbox; public APIs only |
+| Distribution | GitHub Releases and a Homebrew tap (`berkanaslan/homebrew-tap`); Developer ID-signed and notarized; App Sandbox; public APIs only |
 | Platform | macOS 26 Tahoe minimum (Liquid Glass); built with Xcode 27 in the Swift 6 language mode |
 | UI | SwiftUI first, AppKit where SwiftUI has no equivalent (panels, touches); system controls and materials only |
 | Network | None; no network entitlement |
@@ -64,7 +64,7 @@ Keypad fails, even if it technically works, if it:
 | Signing | Team `4HYL3L2W4Z` (the project owner's account) only. No other team may be used. |
 | Language | All code, docs, RFCs and commits in English |
 | Code style | Self-explanatory code, minimal comments, DRY, SOLID, KISS |
-| Business | One-time paid download, no in-app purchases |
+| Business | Free, MIT licence, no revenue path |
 
 ## 7. Verified technical foundation
 
@@ -84,7 +84,7 @@ A throwaway sandboxed spike (2026-10-26, macOS 26, a Mac with a Force Touch trac
 | F10 | `NSHapticFeedbackManager` plays only while a finger is on the surface. Firing on tap completion (finger lifted) does nothing. | Haptic on touch-down, sound on tap. |
 | F11 | `CGEvent` posting needs the Accessibility permission for posting events; Apple DTS says it is sandbox-compatible. macOS shows the system prompt only once per app; after that the user has to be guided to System Settings. | Onboarding must handle the "prompt already used" path. |
 
-Open risk: App Review has rejected apps that post events under Guideline 2.4.5 ("Accessibility features for non-accessibility purposes"). See §11.
+App Review rejects apps that post events under Guideline 2.4.5 ("Accessibility features for non-accessibility purposes"), which is why Keypad ships outside the Mac App Store (RFC-0004).
 
 ## 8. User experience (v1)
 
@@ -232,7 +232,7 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| App Review rejects under Guideline 2.4.5 (event posting) | Medium | Before 1.0, an App Review consultation (Meet with Apple) with a TestFlight build; precise review notes and a demo video. The `KeystrokeSender` protocol keeps a CoreHID `HIDVirtualDevice` sender possible as a fallback (it needs an entitlement request). |
+| App Review rejects event posting (Guideline 2.4.5) | — | Resolved by leaving the Mac App Store; distribution risks are in RFC-0004. |
 | A future macOS changes activation or touch delivery | Low to medium | Keep the spike findings as a regression checklist; test every macOS beta. |
 | Focus timing differs between apps | Medium | Notification-driven hand-off (F6), the settle delay as a tunable constant, the QA app matrix. |
 | Secure Event Input (password fields) blocks the hotkey | Unknown | Verify in RFC-0002 and document the behaviour. |
@@ -262,7 +262,7 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 
 | Decision | Made by |
 |---|---|
-| Mac App Store, sandboxed, public APIs only | PM |
+| Mac App Store, sandboxed, public APIs only | PM; the Mac App Store part superseded by RFC-0004 (2026-10-30) |
 | Native Liquid Glass UI, dark mode, Dock app, starts at login | PM |
 | Haptic and sound feedback, on by default, switchable | PM |
 | Offline; English and Turkish now, more languages later | PM |
@@ -272,7 +272,8 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 | Adjustable active trackpad area | PM |
 | Layouts as data; arithmetic-only calculator and per-app layouts later | PM approved the proposal |
 | Volume and brightness gestures in a later RFC | PM |
-| One-time paid, no in-app purchases | PM |
+| One-time paid, no in-app purchases | PM; superseded by RFC-0004 (2026-10-30) |
+| Free, MIT-licensed open source outside the Mac App Store, no revenue path; Homebrew tap; README as product page; optional keypad.berkan.io; Aluminum icon | PM, 2026-10-30 (RFC-0004) |
 | macOS 26 minimum, Swift 6, SwiftUI with AppKit where needed | Development lead |
 | Default shortcut ⌃⌥K | Development lead |
 | "3×3 standard" read as three columns plus a bottom row | Development lead |
