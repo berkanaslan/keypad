@@ -19,4 +19,4 @@ An RFC records a design decision before it is implemented: what we build, why, a
 | [0002](0002-keypad-session.md) | Keypad Session | Implemented |
 | [0003](0003-feedback-and-settings.md) | Feedback and Settings | Implemented |
 | [0004](0004-open-source-release.md) | Open Source Release | Implemented |
-| [0005](0005-permission-recovery-and-trackpad-pass-through.md) | Permission Recovery and Trackpad Pass-Through | Accepted |
+| [0005](0005-permission-recovery-and-trackpad-pass-through.md) | Permission Recovery and Trackpad Pass-Through | Implemented |

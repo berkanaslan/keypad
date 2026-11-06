@@ -2,7 +2,7 @@
 
 | Field      | Value                                        |
 |------------|----------------------------------------------|
-| Status     | Accepted                                     |
+| Status     | Implemented                                  |
 | Authors    | Claude (development lead), Berkan Aslan (PM) |
 | Created    | 2026-11-05                                   |
 | Depends on | RFC-0000, RFC-0002, RFC-0003, RFC-0004       |
@@ -238,6 +238,40 @@ Manual QA on a real trackpad:
 - `AXIsProcessTrusted` and the settings link on macOS 26, if a test machine is available.
 - VoiceOver, Reduce Motion and the Turkish footer, which may wrap to two lines.
 
+### Final review
+
+A fresh reviewer read the whole change before it merged. It found three problems the tests had missed, all fixed before release:
+
+- A key tapped right after moving the pointer could be lost, because the panel can't see a finger land during the grace period (F12). The grace period now follows only stationary and several-finger touches.
+- A thumb resting outside the area could wake the pointer between taps. A finger that stays down through a tap now counts as resting.
+- A click on the HUD could reach a control hidden behind it. The HUD now keeps the mouse.
+
+A thumb that drifts before the first tap can still wake the pointer; `NSTouch.isResting` isn't used yet.
+
+### QA results (2026-11-06, the PM on a Force Touch trackpad, tap to click on)
+
+The PM stopped the release QA at step 2 of 18 and asked to release without it. These results come from an earlier hands-on check of a separate build, before the version bump.
+
+| Check | Result |
+|---|---|
+| Typing right after a grant, with no relaunch | Pass, confirmed by the log: the same process typed into TextEdit after the grant |
+| Commit, hand-off and reclaim | Pass, confirmed by the log: hand-offs took about 70 ms and every reclaim was active |
+| Dimmed keys, the shake, the settings button, the grant notice | Pass (PM) |
+| A stray tap outside the area | Pass (PM) |
+| Pointer wake with no jump, a fast tap after a move, a resting thumb, a click on the HUD, a firm click | Pass (PM), with a session open for each check |
+| Light tap in pointer mode | Thin: one try of about a second, on top of one through and one missed in the feasibility test |
+| Resting thumb | One thing to watch: that session ended because another app activated, not through Esc; the cause is unknown |
+| Not run | A quick re-clutch, scrolling and a right-click in the real app, a Mission Control swipe in pointer mode, a second display, tap to click off, Chrome and Excel with this build, Esc and the shortcut with a pending number, a tap right after a commit, screen lock and quitting with a session open, revoking in the real app, removing Keypad from the list, macOS 26, an unsigned build, VoiceOver, Reduce Motion, the Turkish footer |
+| Still deferred | Everything deferred in RFC-0002 and RFC-0003 |
+
+### Release results
+
+| Check | Result |
+|---|---|
+| Automated checks | `swift test` and lint pass; CI passed on the release commit |
+| Dry run | Notarization accepted, and the DMG verified, before the tag was pushed |
+| `v0.2.0` (2026-11-06) | Published with `scripts/release.sh`. The published DMG was downloaded again: its SHA-256 equals GitHub's digest and the cask, its ticket validates, Gatekeeper reports a notarized Developer ID source, and the app inside is 0.2.0, signed by the team and sandboxed. |
+
 ## Alternatives considered
 
 | Alternative | Decision |
@@ -276,8 +310,8 @@ Manual QA on a real trackpad:
 2. Run the feasibility test and record the findings. If a result changes this design, update the RFC and bring it back to the PM. Done on 2026-11-06, and the PM confirmed the changes the same day; they are listed under "Open questions".
 3. Write the plan in `docs/plans/`.
 4. Implement in this order, one branch each: the missing-permission HUD (§4), permission watching (§3), then pass-through (§2). The HUD comes first because it is the most self-contained. The README fix (§1) can land at any point.
-5. Run the QA above, plus the rounds deferred in RFC-0002 and RFC-0003.
-6. Release `v0.2.0` with `scripts/release.sh`, then record the results here and mark this RFC Implemented.
+5. Run the QA above, plus the rounds deferred in RFC-0002 and RFC-0003. The PM stopped this on 2026-11-06 and asked to release without it; see "QA results".
+6. Release `v0.2.0` with `scripts/release.sh`, then record the results here and mark this RFC Implemented. Done on 2026-11-06.
 
 ## Open questions
 
