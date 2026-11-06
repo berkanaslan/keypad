@@ -90,7 +90,7 @@ Only while the keypad is open: the pointer pauses until it closes. Esc always cl
 
 ## Build from source
 
-Requires Xcode 27 on macOS 26.
+Requires Xcode 27, which runs on macOS 26.6 or later.
 
 ```bash
 git clone https://github.com/berkanaslan/keypad.git
