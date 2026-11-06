@@ -40,6 +40,7 @@ public final class SessionRunner {
         self.permission = permission
         self.secureInput = secureInput
         focus.onInterruption = { [weak self] in self?.send(.interrupted) }
+        surface.onClickThrough = { [weak self] in self?.clickReachedAnotherApp() }
     }
 
     /// Takes effect when the next session opens.
@@ -77,6 +78,10 @@ public final class SessionRunner {
 
     public func openPermissionSettings() {
         send(.permissionSettingsRequested)
+    }
+
+    public func clickReachedAnotherApp() {
+        send(.clickReachedAnotherApp)
     }
 
     private func send(_ event: SessionEvent) {
@@ -137,6 +142,12 @@ public final class SessionRunner {
                 surface.makeKey()
             case .openPermissionSettings:
                 permission.openPermissionSettings()
+            case .pointer(let mode):
+                surface.setPointer(mode)
+            case .mousePassThrough(let state):
+                surface.setMousePassThrough(state)
+            case .releaseFocus(let target):
+                focus.releaseFocus(to: target)
             }
         }
     }

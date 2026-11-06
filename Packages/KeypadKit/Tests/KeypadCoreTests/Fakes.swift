@@ -4,11 +4,14 @@
 final class FakeSurface: CaptureSurface {
     private(set) var log: [String] = []
     var isKey = true
+    var onClickThrough: (@MainActor () -> Void)?
 
     func show(_ hud: HUDState) { log.append("show") }
     func render(_ hud: HUDState) { log.append("render") }
     func hide() { log.append("hide") }
     func makeKey() { log.append("makeKey") }
+    func setPointer(_ mode: PointerMode) { log.append("pointer.\(mode)") }
+    func setMousePassThrough(_ state: MousePassThrough) { log.append("mouse.\(state)") }
 }
 
 @MainActor
@@ -18,6 +21,7 @@ final class FakeFocus: FocusController {
     var onInterruption: (@MainActor () -> Void)?
     private(set) var watching: AppIdentity?
     private(set) var returnedTo: AppIdentity?
+    private(set) var releasedTo: AppIdentity?
     private(set) var beginWatchingCount = 0
 
     private var handOffCompletions: [@MainActor (Bool) -> Void] = []
@@ -35,6 +39,7 @@ final class FakeFocus: FocusController {
     }
     func reclaim(completion: @escaping @MainActor (Bool) -> Void) { reclaimCompletions.append(completion) }
     func returnFocus(to target: AppIdentity) { returnedTo = target }
+    func releaseFocus(to target: AppIdentity) { releasedTo = target }
 
     func completeHandOff(_ succeeded: Bool) { handOffCompletions.last?(succeeded) }
     func completeHandOff(_ succeeded: Bool, issued index: Int) { handOffCompletions[index](succeeded) }

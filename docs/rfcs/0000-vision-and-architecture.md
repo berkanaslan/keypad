@@ -47,7 +47,7 @@ Keypad fails, even if it technically works, if it:
 - looks custom-drawn instead of like something Apple made;
 - uses private APIs or leaves the App Sandbox;
 - interferes with normal trackpad use when no session is open;
-- leaves focus in the wrong app, loses a typed number or types into the wrong field;
+- leaves focus in the wrong app, loses a typed number or types into the wrong field (a deliberate click outside the active area discards the number, as Esc does);
 - hides what the user typed (the display never truncates);
 - collects or transmits user data.
 
@@ -112,7 +112,7 @@ App Review rejects apps that post events under Guideline 2.4.5 ("Accessibility f
 
 1. The user presses the shortcut (default ⌃⌥K, configurable) in any app.
 2. Keypad remembers the frontmost app, activates, and shows a full-screen capture panel on the display under the pointer. A Liquid Glass HUD in the centre shows the target app (icon and name), the number display, the key grid and a one-line hint ("Return, Tab or arrows to type · Esc to close").
-3. The pointer freezes. Clicks, scrolls and gestures are swallowed; nothing reaches the app underneath.
+3. The pointer freezes. Clicks, scrolls and gestures are swallowed; nothing reaches the app underneath. With a smaller active area, the rest of the trackpad can still drive the pointer (§8.5).
 4. Touch-down on a cell plays the haptic. A completed tap plays the sound, applies the key's action and briefly highlights the key.
 5. The number builds up in the HUD display. Backspace (the ⌫ cell or the Delete key) removes the last character. Digit, decimal and Delete keys on the physical keyboard also edit the number; other keys are ignored unless they commit (§8.3).
 6. The display never truncates: it widens first, then scales the text down, then wraps.
@@ -139,7 +139,7 @@ App Review rejects apps that post events under Guideline 2.4.5 ("Accessibility f
 
 ### 8.5 Active trackpad area
 
-The user chooses which part of the physical trackpad acts as the keypad (size and position, stored as a normalized rectangle). Touches outside it are ignored. Settings shows a trackpad-shaped preview with handles. The default is the whole surface.
+The user chooses which part of the physical trackpad acts as the keypad (size and position, stored as a normalized rectangle). A stationary tap outside it is ignored. A finger that travels outside it wakes the pointer: the trackpad then works normally there, and a click closes the session (RFC-0005 §2). Settings shows a trackpad-shaped preview with handles. The default is the whole surface.
 
 ### 8.6 Onboarding and permission
 

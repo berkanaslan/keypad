@@ -11,6 +11,11 @@ final class HUDCaptureSurface: CaptureSurface {
         set { capturePanel.onTouch = newValue }
     }
 
+    var onClickThrough: (@MainActor () -> Void)? {
+        get { capturePanel.onClickThrough }
+        set { capturePanel.onClickThrough = newValue }
+    }
+
     var onOpenSettings: (@MainActor () -> Void)? {
         get { model.onOpenSettings }
         set { model.onOpenSettings = newValue }
@@ -43,6 +48,14 @@ final class HUDCaptureSurface: CaptureSurface {
 
     func makeKey() {
         capturePanel.makeKey()
+    }
+
+    func setPointer(_ mode: PointerMode) {
+        capturePanel.setPointer(mode)
+    }
+
+    func setMousePassThrough(_ state: MousePassThrough) {
+        capturePanel.setMousePassThrough(state)
     }
 
     private func apply(_ hud: HUDState) {

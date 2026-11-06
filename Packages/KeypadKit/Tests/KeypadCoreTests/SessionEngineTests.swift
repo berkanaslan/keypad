@@ -413,3 +413,96 @@ private func lastRender(in effects: [SessionEffect]) -> HUDState? {
         #expect(engine.state == .capturing)
     }
 }
+
+@Suite struct SessionPointerModeTests {
+    private var engine: SessionEngine = {
+        var configuration = SessionConfiguration()
+        configuration.activeArea = ActiveArea(x: 0, y: 0, width: 0.5, height: 1)
+        return SessionEngine(configuration: configuration)
+    }()
+
+    private mutating func wake() -> [SessionEffect] {
+        let start = TrackpadPoint(x: 0.8, y: 0.5)
+        let end = TrackpadPoint(x: 0.85, y: 0.5)
+        return engine.handle(.touch(TouchSample(id: 9, phase: .began, point: start, time: 0)))
+            + engine.handle(.touch(TouchSample(id: 9, phase: .moved, point: end, time: 0.1)))
+    }
+
+    private mutating func lift() {
+        let end = TrackpadPoint(x: 0.85, y: 0.5)
+        _ = engine.handle(.touch(TouchSample(id: 9, phase: .ended, point: end, time: 0.2)))
+    }
+
+    @Test mutating func wakingShowsThePointerHint() {
+        open(&engine)
+
+        let effects = wake()
+
+        #expect(effects.contains(.pointer(.pointer)))
+        #expect(lastRender(in: effects)?.showsPointerHint == true)
+    }
+
+    @Test mutating func tappingTheAreaEntersItsDigit() {
+        open(&engine)
+        _ = wake()
+        lift()
+
+        let hud = lastRender(in: tap(&engine, x: 0.1, y: 0.95))
+
+        #expect(hud?.buffer.display(decimalSeparator: ".") == "7")
+        #expect(hud?.showsPointerHint == false)
+    }
+
+    @Test mutating func clickInPointerModeClosesAndDiscardsTheNumber() {
+        open(&engine)
+        tapSeven(&engine)
+        _ = wake()
+
+        let effects = engine.handle(.clickReachedAnotherApp)
+
+        #expect(effects == [.hideCapture(returnFocusTo: nil), .releaseFocus(to: chrome)])
+        #expect(engine.state == .idle)
+        guard case .showCapture(let hud) = open(&engine).first else {
+            Issue.record("expected showCapture first")
+            return
+        }
+        #expect(hud.buffer.isEmpty)
+    }
+
+    @Test mutating func clickInKeypadModeDoesNothing() {
+        open(&engine)
+
+        #expect(engine.handle(.clickReachedAnotherApp) == [])
+        #expect(engine.state == .capturing)
+    }
+
+    @Test mutating func commitFromPointerModeFreezesFirst() throws {
+        open(&engine)
+        tapSeven(&engine)
+        _ = wake()
+
+        let effects = engine.handle(.key(.commit(.tab)))
+
+        let frozen = try #require(effects.firstIndex(of: .pointer(.keypad)))
+        let handOff = try #require(effects.firstIndex(of: .handOff(to: chrome)))
+        #expect(frozen < handOff)
+    }
+
+    @Test mutating func shortcutFromPointerModeFreezesFirst() throws {
+        open(&engine)
+        tapSeven(&engine)
+        _ = wake()
+
+        let effects = engine.handle(.shortcutPressed(context()))
+
+        let frozen = try #require(effects.firstIndex(of: .pointer(.keypad)))
+        let handOff = try #require(effects.firstIndex(of: .handOff(to: chrome)))
+        #expect(frozen < handOff)
+    }
+
+    @Test mutating func noPointerRulesWhileThePermissionIsMissing() {
+        open(&engine, canPost: false)
+
+        #expect(!wake().contains(.pointer(.pointer)))
+    }
+}

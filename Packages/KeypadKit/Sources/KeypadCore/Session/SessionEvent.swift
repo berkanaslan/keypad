@@ -22,4 +22,5 @@ public enum SessionEvent: Equatable, Sendable {
     /// Focus was lost, the target quit, the display configuration changed or the screen locked.
     case interrupted
     case permissionSettingsRequested
+    case clickReachedAnotherApp
 }
