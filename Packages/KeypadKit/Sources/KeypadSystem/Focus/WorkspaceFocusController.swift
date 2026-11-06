@@ -138,6 +138,15 @@ public final class WorkspaceFocusController: FocusController {
         app.activate(from: .current, options: [])
     }
 
+    public func releaseFocus(to target: AppIdentity) {
+        pendingTask = schedule(after: reclaimCheck) { [weak self] in
+            guard let self else { return }
+            pendingTask = nil
+            guard watchedTarget == nil, NSApplication.shared.isActive else { return }
+            returnFocus(to: target)
+        }
+    }
+
     private func applicationDidActivate(_ pid: Int32?) {
         guard let pid, pid != ownProcessID, pid != activeHandOff?.target.processID else { return }
         interrupt(.otherAppActivated)

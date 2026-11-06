@@ -110,19 +110,21 @@ Every session opens in keypad mode.
 |---|---|---|
 | Keypad | A finger lands in the active area | As today |
 | Keypad | A finger lands outside and lifts without travelling, even after a press | Ignored, as today |
-| Keypad | A finger that landed outside travels the tap movement limit (0.04 of the trackpad), with no finger in the active area | Pointer mode |
+| Keypad | A finger that landed outside travels the tap movement limit (0.04 of the trackpad), with no finger in the active area and without having stayed down through a tap | Pointer mode |
 | Pointer | A finger lands outside | Normal trackpad use |
 | Pointer | A finger lands in the active area | Keypad mode: the pointer freezes where it is, and the touch counts as a tap |
 | Pointer | The user clicks | The click reaches the app under the pointer, and the session closes (below) |
 | Either | A commit key, Esc or the shortcut | As today; a sticky session resumes in keypad mode |
 
-**A contact belongs to where it landed.** A finger that slides from outside into the active area keeps moving the pointer. A finger that slides out of the active area stays a keypad contact, and the movement cancels its tap, as it does today.
+**A contact belongs to where it landed.** A finger that slides from outside into the active area keeps moving the pointer. A finger that slides out of the active area stays a keypad contact, and the movement cancels its tap, as it does today. A finger that stays down through a tap is resting, so it can't wake the pointer however far it drifts.
 
 **Why the pointer has to wake first.** With tap to click turned on, a light tap next to the keypad is a click. If that closed the session, every slip would lose the number. Asking for travel first keeps slips harmless, and it costs little: the pointer starts frozen, so someone who wants to click something nearly always has to move it first.
 
 **A click closes the session.** In pointer mode, Keypad watches for a mouse-down that reaches another app, using a global `NSEvent` monitor, which needs no permission. The click itself closes the session, even if no app activates. Every click that got through in the test activated its app within 20 ms, but clicks on other spots with the pointer frozen often didn't (F16), so activation alone isn't enough. The existing rule stays as a second trigger. If Keypad is still the active app just after the close, it hands focus to the target app, so the keyboard isn't left with no window. Keypad can't keep the trackpad after a click, because touches only arrive while Keypad is active (F2).
 
 **A click can miss.** In the test, 2 of 8 clicks stayed on the panel: a press 28 ms after the finger landed, and a click with no touch reported. The session stays open and nothing else happens, so the user clicks again (F16). Light taps have the thinnest evidence, one through and one missed, so QA repeats them.
+
+**The HUD stays solid.** A click over the HUD stays on the panel, so it can't fire a control hidden behind the HUD. Nothing happens and the session stays open, because the pointer can look as if it could press a key.
 
 **Scrolling** works once the pointer is awake. A scroll that starts while the pointer is asleep wakes it, but that scroll stays with the panel and moves nothing; the next one works. Momentum can stop early, when the panel takes mouse input back (F17).
 
@@ -133,8 +135,8 @@ Every session opens in keypad mode.
 **How it works:**
 
 - **Pointer:** `CGAssociateMouseAndMouseCursorPosition(1)` in pointer mode and `(0)` in keypad mode. Keypad already uses this call. The travel limit means the pointer starts moving slightly late; QA tunes it if that feels like a jump (F14).
-- **Mouse input:** AppKit attaches a first touch to the view under the pointer, using the same hit detection as mouse events. A panel that ignores mouse events when a finger lands doesn't get that touch (F12), while a touch already attached stays attached until every finger lifts (F13). So the panel sets `ignoresMouseEvents = true` only while a finger that landed outside is down in pointer mode, and clears it after the last finger lifts. A grace period of 150 ms lets a tap-to-click click, which arrives within about 10 ms of the lift, get through (F15). A finger landing in the active area cancels the grace period.
-- **Another display:** touches stop reaching the panel if the pointer leaves it. When the last finger lifts on a different display, the capture panel and its HUD move to that display.
+- **Mouse input:** AppKit attaches a first touch to the view under the pointer, using the same hit detection as mouse events. A panel that ignores mouse events when a finger lands doesn't get that touch (F12), while a touch already attached stays attached until every finger lifts (F13). So the panel sets `ignoresMouseEvents = true` only while a finger that landed outside is down in pointer mode, and clears it after the last finger lifts. The panel can't see a finger that lands while it ignores mouse events, so a lift after a single finger travelled ends pass-through at once: nothing can follow that touch. A grace period of 150 ms follows only a stationary touch, whose tap-to-click click arrives within about 10 ms of the lift (F15), or a touch with several fingers, where momentum can follow. A key tapped inside that window is missed.
+- **Another display:** touches stop reaching the panel if the pointer leaves it. When pass-through ends with the pointer on a different display, the capture panel and its HUD move to that display.
 - **Layers:** the rules live in `KeypadCore`, as engine state and new effects, so they can be tested without a trackpad. The timer and the AppKit and CoreGraphics calls stay in `CapturePanelController`. The panel's close path restores everything, as it does today.
 
 An external mouse stays frozen in keypad mode, as it does now.
@@ -225,11 +227,13 @@ Swift Testing, with a failing test first (AGENTS.md §11):
 
 Manual QA on a real trackpad:
 
-- Tap to click on and off, with taps right at the edge of the active area.
+- Tap to click on and off, with taps right at the edge of the active area, and a key tapped as fast as possible after moving the pointer.
+- A thumb resting outside the area through a long run of numbers.
+- A quick re-clutch outside the area followed by a physical click, and a click on the HUD.
 - Clicks, a drag, a two-finger scroll and a Mission Control swipe in pointer mode, with light taps repeated many times.
 - Whether the pointer seems to jump when it wakes, and whether the travel limit needs tuning.
 - Pass-through in Excel, Chrome and an Electron app.
-- Two displays, including the panel following the pointer, full-screen apps, and the active area in each corner.
+- Two displays, including the panel following the pointer and a commit with the pointer on the other display, full-screen apps, and the active area in each corner.
 - Revoking and granting, removing Keypad from the Accessibility list, a grant made through the system prompt, and an unsigned build.
 - `AXIsProcessTrusted` and the settings link on macOS 26, if a test machine is available.
 - VoiceOver, Reduce Motion and the Turkish footer, which may wrap to two lines.
@@ -258,7 +262,7 @@ Manual QA on a real trackpad:
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | A click stays on the panel while it switches (2 of 8 in the test) | Medium | The session stays open and the next click works; QA repeats light taps |
-| The grace period swallows a real tap, or lets a tap-to-click click through | Low | 150 ms is far above the 3–9 ms measured; a finger in the active area cancels it |
+| A key tapped during the grace period is missed, because the panel can't see it (F12) | Low | The grace period follows only stationary and several-finger touches, not a pointer move |
 | A deliberate click loses a number | Medium | The footer warns before the click; the pointer needs travel first |
 | The pointer ends up on a display the panel isn't on | Medium | The panel follows the pointer; QA on two displays |
 | `AXIsProcessTrusted` behaves differently on macOS 26 or a future macOS | Low to medium | Only macOS 27 was tested. If it goes stale, Keypad falls back to today's behaviour: relaunching reads a fresh answer. |

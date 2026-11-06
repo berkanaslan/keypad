@@ -13,6 +13,7 @@ public struct SessionEngine: Sendable {
     private var configuration: SessionConfiguration
     private var nextConfiguration: SessionConfiguration
     private var recognizer = TapRecognizer()
+    private var router = PointerRouter(area: .fullSurface)
     /// Set exactly while a session is open, that is in every state but `idle`.
     private var target: AppIdentity?
     private var buffer = EntryBuffer()
@@ -46,6 +47,8 @@ public struct SessionEngine: Sendable {
             return handleKey(input, target: target)
         case (.capturing, .permissionSettingsRequested):
             return openPermissionSettings()
+        case (.capturing, .clickReachedAnotherApp):
+            return clickReachedAnotherApp(target: target)
         case (.committing, .handOffFinished(let succeeded)):
             return finishHandOff(succeeded: succeeded)
         case (.reclaiming, .reclaimFinished(let succeeded)):
@@ -67,6 +70,7 @@ public struct SessionEngine: Sendable {
         }
         target = frontmost
         configuration = nextConfiguration
+        router = PointerRouter(area: configuration.activeArea)
         canPostEvents = context.canPostEvents
         permissionNudges = 0
         state = .capturing
@@ -74,6 +78,15 @@ public struct SessionEngine: Sendable {
     }
 
     private mutating func handleTouch(_ sample: TouchSample, target: AppIdentity) -> [SessionEffect] {
+        guard canPostEvents else { return handleTap(sample, target: target) }
+        let previousMode = router.mode
+        let routing = router.handle(sample)
+        let tapping = handleTap(sample, target: target)
+        let showsNewMode = router.mode != previousMode && tapping.isEmpty
+        return routing + tapping + (showsNewMode ? [.render(hud(target: target))] : [])
+    }
+
+    private mutating func handleTap(_ sample: TouchSample, target: AppIdentity) -> [SessionEffect] {
         guard let event = recognizer.handle(sample) else { return [] }
         switch event {
         case .touchDown(let point):
@@ -119,15 +132,20 @@ public struct SessionEngine: Sendable {
                 return nudge(target: target)
             }
         }
-        beginHandOff(typing: buffer.keystrokes + [.commit(key)])
-        return [.render(hud(target: target)), .handOff(to: target)]
+        let freezing = beginHandOff(typing: buffer.keystrokes + [.commit(key)])
+        return freezing + [.render(hud(target: target)), .handOff(to: target)]
     }
 
     private mutating func closeByShortcut(target: AppIdentity) -> [SessionEffect] {
         guard !buffer.isEmpty else { return close(returnFocusTo: target) }
         closesAfterTyping = true
-        beginHandOff(typing: buffer.keystrokes)
-        return [.handOff(to: target)]
+        return beginHandOff(typing: buffer.keystrokes) + [.handOff(to: target)]
+    }
+
+    /// Not every click activates an app (RFC-0000 F16), so the click itself ends the session.
+    private mutating func clickReachedAnotherApp(target: AppIdentity) -> [SessionEffect] {
+        guard router.mode == .pointer else { return [] }
+        return close(returnFocusTo: nil) + [.releaseFocus(to: target)]
     }
 
     private mutating func nudge(target: AppIdentity) -> [SessionEffect] {
@@ -141,11 +159,12 @@ public struct SessionEngine: Sendable {
     }
 
     /// Touches are not delivered while handing off, so a contact still held here must not tap once the session resumes.
-    private mutating func beginHandOff(typing keystrokes: [Keystroke]) {
+    private mutating func beginHandOff(typing keystrokes: [Keystroke]) -> [SessionEffect] {
         pending = keystrokes
         buffer = EntryBuffer()
         recognizer = TapRecognizer()
         state = .committing
+        return router.reset()
     }
 
     private mutating func finishHandOff(succeeded: Bool) -> [SessionEffect] {
@@ -186,7 +205,8 @@ public struct SessionEngine: Sendable {
             buffer: buffer,
             highlightedCell: cell,
             showsPermissionWarning: !canPostEvents,
-            permissionNudges: permissionNudges
+            permissionNudges: permissionNudges,
+            showsPointerHint: router.mode == .pointer
         )
     }
 }

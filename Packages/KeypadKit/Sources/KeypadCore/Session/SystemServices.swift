@@ -6,6 +6,10 @@ public protocol CaptureSurface: AnyObject {
     func hide()
     func makeKey()
     var isKey: Bool { get }
+    /// Called when a click passes through to another app in pointer mode.
+    var onClickThrough: (@MainActor () -> Void)? { get set }
+    func setPointer(_ mode: PointerMode)
+    func setMousePassThrough(_ state: MousePassThrough)
 }
 
 /// Moves keyboard focus between Keypad and the target app, and reports when the target is lost.
@@ -21,6 +25,8 @@ public protocol FocusController: AnyObject {
     func handOff(to target: AppIdentity, completion: @escaping @MainActor (Bool) -> Void)
     func reclaim(completion: @escaping @MainActor (Bool) -> Void)
     func returnFocus(to target: AppIdentity)
+    /// Hands focus to `target` shortly after a close, unless another app has taken it by then.
+    func releaseFocus(to target: AppIdentity)
 }
 
 @MainActor

@@ -145,6 +145,22 @@
         }
       }
     },
+    "hud.pointerHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clicking closes Keypad · Tap the keypad to continue"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tıklamak Keypad'i kapatır · Devam etmek için tuşlara dokunun"
+          }
+        }
+      }
+    },
     "hud.target.accessibilityLabel" : {
       "localizations" : {
         "en" : {

@@ -28,7 +28,7 @@ public struct KeypadHUDView: View {
                         onButtonFrame: { model.onSettingsButtonFrame?($0) }
                     )
                 } else {
-                    Text("hud.hint", bundle: .keypadUI)
+                    Text(hud.showsPointerHint ? "hud.pointerHint" : "hud.hint", bundle: .keypadUI)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
