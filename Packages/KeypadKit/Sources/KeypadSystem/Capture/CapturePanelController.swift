@@ -7,9 +7,12 @@ public final class CapturePanelController {
 
     private let panel = CapturePanel()
     private let touchView = TouchCaptureView(frame: .zero)
+    private let content: NSView
     private var displacedWindows: [NSWindow] = []
+    private var clickThroughRect: CGRect?
 
     public init(content: NSView) {
+        self.content = content
         let container = NSView()
         panel.contentView = container
         content.translatesAutoresizingMaskIntoConstraints = false
@@ -25,6 +28,7 @@ public final class CapturePanelController {
             touchView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
         touchView.onSample = { [weak self] sample in self?.onTouch?(sample) }
+        touchView.clickThroughRect = { [weak self] in self?.clickThroughInTouchView }
     }
 
     isolated deinit {
@@ -33,13 +37,18 @@ public final class CapturePanelController {
 
     public var isKey: Bool { panel.isKeyWindow }
 
-    public func show() {
+    public func show(freezesPointer: Bool) {
         guard !panel.isVisible, let screen = NSScreen.underPointer else { return }
         panel.setFrame(screen.frame, display: false)
         orderOutOtherWindows()
-        CGAssociateMouseAndMouseCursorPosition(0)
+        if freezesPointer { CGAssociateMouseAndMouseCursorPosition(0) }
         NSApplication.shared.activate()
         makeKey()
+    }
+
+    /// `rect` is in the content view's coordinates; the content view can still move after this call.
+    public func setClickThrough(_ rect: CGRect?) {
+        clickThroughRect = rect
     }
 
     public func makeKey() {
@@ -56,6 +65,10 @@ public final class CapturePanelController {
         for window in windows {
             window.orderBack(nil)
         }
+    }
+
+    private var clickThroughInTouchView: NSRect? {
+        clickThroughRect.map { content.convert($0, to: touchView) }
     }
 
     /// Activating Keypad would otherwise bring them in front of the target app (RFC-0000 F9). Windows that cannot

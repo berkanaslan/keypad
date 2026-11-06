@@ -44,6 +44,7 @@ public protocol NoticeSurface {
 public protocol PermissionChecker {
     var canPostEvents: Bool { get }
     func requestPostEventAccess()
+    func openPermissionSettings()
 }
 
 @MainActor

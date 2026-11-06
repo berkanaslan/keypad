@@ -113,6 +113,22 @@
         }
       }
     },
+    "hud.permission.openSettings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem Ayarları'nı Aç"
+          }
+        }
+      }
+    },
     "hud.permissionMissing" : {
       "localizations" : {
         "en" : {

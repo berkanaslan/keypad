@@ -55,6 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hotkey.onPress = { [weak runner] in runner?.shortcutPressed() }
         surface.onTouch = { [weak runner] sample in runner?.receive(sample) }
+        surface.onOpenSettings = { [weak runner] in runner?.openPermissionSettings() }
         keyboard.start { [weak runner] key in runner?.receive(key) ?? false }
         settings.onChange = { [weak self] changed in self?.apply(changed) }
         settings.start()

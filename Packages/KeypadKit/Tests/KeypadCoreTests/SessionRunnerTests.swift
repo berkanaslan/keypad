@@ -327,3 +327,14 @@ enum ExitPath: CaseIterable {
         #expect(harness.surface.log.isEmpty)
     }
 }
+
+@MainActor @Test func openPermissionSettingsReachesTheChecker() {
+    let harness = SessionHarness()
+    harness.permission.canPostEvents = false
+    harness.runner.shortcutPressed()
+
+    harness.runner.openPermissionSettings()
+
+    #expect(harness.permission.settingsOpens == 1)
+    #expect(harness.surface.log.last == "hide")
+}

@@ -19,6 +19,7 @@ public struct SessionEngine: Sendable {
     private var pending: [Keystroke] = []
     private var closesAfterTyping = false
     private var canPostEvents = false
+    private var permissionNudges = 0
 
     public init(configuration: SessionConfiguration) {
         self.configuration = configuration
@@ -43,6 +44,8 @@ public struct SessionEngine: Sendable {
             return handleTouch(sample, target: target)
         case (.capturing, .key(let input)):
             return handleKey(input, target: target)
+        case (.capturing, .permissionSettingsRequested):
+            return openPermissionSettings()
         case (.committing, .handOffFinished(let succeeded)):
             return finishHandOff(succeeded: succeeded)
         case (.reclaiming, .reclaimFinished(let succeeded)):
@@ -65,6 +68,7 @@ public struct SessionEngine: Sendable {
         target = frontmost
         configuration = nextConfiguration
         canPostEvents = context.canPostEvents
+        permissionNudges = 0
         state = .capturing
         return [.showCapture(hud(target: frontmost))]
     }
@@ -73,10 +77,11 @@ public struct SessionEngine: Sendable {
         guard let event = recognizer.handle(sample) else { return [] }
         switch event {
         case .touchDown(let point):
-            guard let cell = cell(at: point) else { return [] }
+            guard canPostEvents, let cell = cell(at: point) else { return [] }
             return [.feedback(.touchDown), .render(hud(target: target, highlighting: cell))]
         case .tap(let point):
             guard let cell = cell(at: point) else { return [] }
+            guard canPostEvents else { return nudge(target: target) }
             buffer.apply(cell.action)
             return [.feedback(.keyAccepted), .render(hud(target: target, highlighting: cell))]
         }
@@ -100,22 +105,39 @@ public struct SessionEngine: Sendable {
     }
 
     private mutating func edit(_ action: KeyAction, target: AppIdentity) -> [SessionEffect] {
+        guard canPostEvents else { return nudge(target: target) }
         buffer.apply(action)
         return [.render(hud(target: target))]
     }
 
     private mutating func commit(_ key: CommitKey, target: AppIdentity) -> [SessionEffect] {
-        guard canPostEvents else { return [.render(hud(target: target))] }
+        guard canPostEvents else {
+            switch key {
+            case .returnKey, .shiftReturn, .keypadEnter:
+                return openPermissionSettings()
+            case .tab, .shiftTab, .arrow:
+                return nudge(target: target)
+            }
+        }
         beginHandOff(typing: buffer.keystrokes + [.commit(key)])
         return [.render(hud(target: target)), .handOff(to: target)]
     }
 
     private mutating func closeByShortcut(target: AppIdentity) -> [SessionEffect] {
         guard !buffer.isEmpty else { return close(returnFocusTo: target) }
-        guard canPostEvents else { return [.render(hud(target: target))] }
         closesAfterTyping = true
         beginHandOff(typing: buffer.keystrokes)
         return [.handOff(to: target)]
+    }
+
+    private mutating func nudge(target: AppIdentity) -> [SessionEffect] {
+        permissionNudges += 1
+        return [.render(hud(target: target))]
+    }
+
+    private mutating func openPermissionSettings() -> [SessionEffect] {
+        guard !canPostEvents else { return [] }
+        return close(returnFocusTo: nil) + [.openPermissionSettings]
     }
 
     /// Touches are not delivered while handing off, so a contact still held here must not tap once the session resumes.
@@ -163,7 +185,8 @@ public struct SessionEngine: Sendable {
             layout: configuration.layout,
             buffer: buffer,
             highlightedCell: cell,
-            showsPermissionWarning: !canPostEvents
+            showsPermissionWarning: !canPostEvents,
+            permissionNudges: permissionNudges
         )
     }
 }

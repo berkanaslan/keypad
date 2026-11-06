@@ -14,19 +14,23 @@ public struct HUDState: Equatable, Sendable {
     public let buffer: EntryBuffer
     public let highlightedCell: Layout.Cell?
     public let showsPermissionWarning: Bool
+    /// Rises each time the user tries to use a keypad that can't type, so the view can react to every attempt.
+    public let permissionNudges: Int
 
     public init(
         target: AppIdentity,
         layout: Layout,
         buffer: EntryBuffer,
         highlightedCell: Layout.Cell?,
-        showsPermissionWarning: Bool
+        showsPermissionWarning: Bool,
+        permissionNudges: Int = 0
     ) {
         self.target = target
         self.layout = layout
         self.buffer = buffer
         self.highlightedCell = highlightedCell
         self.showsPermissionWarning = showsPermissionWarning
+        self.permissionNudges = permissionNudges
     }
 }
 
@@ -40,4 +44,5 @@ public enum SessionEffect: Equatable, Sendable {
     case handOff(to: AppIdentity)
     case type([Keystroke])
     case reclaimFocus
+    case openPermissionSettings
 }
