@@ -52,7 +52,7 @@ The big picture lives in [RFC-0000](docs/rfcs/0000-vision-and-architecture.md); 
 - Target macOS 26 and later.
 - Use SwiftUI first; use AppKit only where SwiftUI has no equivalent (panels, touches, events).
 - Use system controls, materials and metrics only. No custom-drawn look.
-- Respect the verified technical foundation in RFC-0000 §7 (F1–F11) before changing input, focus or key delivery.
+- Respect the verified technical foundation in RFC-0000 §7 (F1–F20) before changing input, focus or key delivery.
 
 ## 7. Signing
 
