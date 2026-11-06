@@ -113,6 +113,22 @@
         }
       }
     },
+    "hud.permission.openSettings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistem Ayarları'nı Aç"
+          }
+        }
+      }
+    },
     "hud.permissionMissing" : {
       "localizations" : {
         "en" : {
@@ -129,6 +145,22 @@
         }
       }
     },
+    "hud.pointerHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clicking closes Keypad · Tap the keypad to continue"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tıklamak Keypad'i kapatır · Devam etmek için tuşlara dokunun"
+          }
+        }
+      }
+    },
     "hud.target.accessibilityLabel" : {
       "localizations" : {
         "en" : {
@@ -141,6 +173,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ uygulamasına yazılıyor"
+          }
+        }
+      }
+    },
+    "notice.permissionGranted" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keypad can now type into other apps"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keypad artık diğer uygulamalara yazabilir"
           }
         }
       }

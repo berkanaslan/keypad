@@ -19,11 +19,26 @@ public struct KeypadHUDView: View {
                     layout: hud.layout, highlightedCell: model.highlightedCell, decimalSeparator: model.decimalSeparator
                 )
                 .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: model.highlightedCell)
-                Footer(showsPermissionWarning: hud.showsPermissionWarning)
+                .opacity(hud.showsPermissionWarning ? HUDMetrics.disabledOpacity : 1)
+                if hud.showsPermissionWarning {
+                    PermissionWarning(
+                        nudges: hud.permissionNudges,
+                        isEmphasized: model.isWarningEmphasized,
+                        onOpenSettings: { model.onOpenSettings?() },
+                        onButtonFrame: { model.onSettingsButtonFrame?($0) }
+                    )
+                } else {
+                    Text(hud.showsPointerHint ? "hud.pointerHint" : "hud.hint", bundle: .keypadUI)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(HUDMetrics.padding)
             .frame(width: HUDMetrics.width)
             .glassEffect(.regular, in: .rect(cornerRadius: HUDMetrics.cornerRadius))
+            .coordinateSpace(.named(HUDMetrics.coordinateSpace))
         }
     }
 }
@@ -37,6 +52,8 @@ private enum HUDMetrics {
     static let keySpacing: CGFloat = 8
     static let keyHeight: CGFloat = 64
     static let keyCornerRadius: CGFloat = 16
+    static let disabledOpacity = 0.4
+    static let coordinateSpace = "hud"
 }
 
 private struct TargetRow: View {
@@ -127,21 +144,46 @@ private struct KeyCell: View {
     }
 }
 
-private struct Footer: View {
-    let showsPermissionWarning: Bool
+private struct PermissionWarning: View {
+    let nudges: Int
+    let isEmphasized: Bool
+    let onOpenSettings: () -> Void
+    let onButtonFrame: (CGRect?) -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Group {
-            if showsPermissionWarning {
-                Text("hud.permissionMissing", bundle: .keypadUI)
-                    .fontWeight(.semibold)
-            } else {
-                Text("hud.hint", bundle: .keypadUI)
-                    .foregroundStyle(.secondary)
+        VStack(spacing: 8) {
+            Text("hud.permissionMissing", bundle: .keypadUI)
+                .font(.footnote)
+                .fontWeight(.semibold)
+                .foregroundStyle(reduceMotion && isEmphasized ? Color.red : Color.primary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .keyframeAnimator(initialValue: 0.0, trigger: nudges) { [reduceMotion] content, offset in
+                    content.offset(x: reduceMotion ? 0 : offset)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        LinearKeyframe(-8, duration: 0.05)
+                        LinearKeyframe(8, duration: 0.1)
+                        LinearKeyframe(-6, duration: 0.1)
+                        LinearKeyframe(4, duration: 0.08)
+                        LinearKeyframe(0, duration: 0.07)
+                    }
+                }
+            Button(action: onOpenSettings) {
+                Text("hud.permission.openSettings", bundle: .keypadUI)
             }
+            .buttonStyle(.glass)
+            .onGeometryChange(for: CGRect.self) { proxy in
+                proxy.frame(in: .named(HUDMetrics.coordinateSpace))
+            } action: { frame in
+                onButtonFrame(frame)
+            }
+            .onDisappear { onButtonFrame(nil) }
         }
-        .font(.footnote)
-        .multilineTextAlignment(.center)
-        .fixedSize(horizontal: false, vertical: true)
+        .onChange(of: nudges) {
+            AccessibilityNotification.Announcement(String(localized: "hud.permissionMissing", bundle: .keypadUI)).post()
+        }
     }
 }

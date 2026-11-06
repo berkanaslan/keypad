@@ -15,9 +15,10 @@ final class SessionHarness {
     let secureInput = FakeSecureInput()
     let runner: SessionRunner
 
-    init(isSticky: Bool = true) {
+    init(isSticky: Bool = true, activeArea: ActiveArea = .fullSurface) {
         var configuration = SessionConfiguration()
         configuration.isSticky = isSticky
+        configuration.activeArea = activeArea
         focus.frontmost = chrome
         runner = SessionRunner(
             configuration: configuration,
@@ -36,6 +37,11 @@ final class SessionHarness {
         runner.receive(TouchSample(id: 1, phase: .began, point: point, time: 0))
         runner.receive(TouchSample(id: 1, phase: .ended, point: point, time: 0.1))
     }
+
+    func wakePointer() {
+        runner.receive(TouchSample(id: 9, phase: .began, point: TrackpadPoint(x: 0.8, y: 0.5), time: 0))
+        runner.receive(TouchSample(id: 9, phase: .moved, point: TrackpadPoint(x: 0.85, y: 0.5), time: 0.1))
+    }
 }
 
 enum ExitPath: CaseIterable {
@@ -48,8 +54,9 @@ enum ExitPath: CaseIterable {
 
     var isSticky: Bool { self != .nonStickyCommit }
 
-    @MainActor func run(on harness: SessionHarness) {
+    @MainActor func run(on harness: SessionHarness, afterOpening: () -> Void = {}) {
         harness.runner.shortcutPressed()
+        afterOpening()
         switch self {
         case .escape:
             harness.runner.receive(.escape)
@@ -326,4 +333,66 @@ enum ExitPath: CaseIterable {
         #expect(harness.notices.shown == [.secureInput])
         #expect(harness.surface.log.isEmpty)
     }
+}
+
+@MainActor @Test func openPermissionSettingsReachesTheChecker() {
+    let harness = SessionHarness()
+    harness.permission.canPostEvents = false
+    harness.runner.shortcutPressed()
+
+    harness.runner.openPermissionSettings()
+
+    #expect(harness.permission.settingsOpens == 1)
+    #expect(harness.surface.log.last == "hide")
+}
+
+@MainActor @Test func shortcutReportsAMissingPermission() {
+    let harness = SessionHarness()
+    var reports = 0
+    harness.runner.onPermissionMissing = { reports += 1 }
+
+    harness.runner.shortcutPressed()
+    #expect(reports == 0)
+
+    harness.runner.receive(.escape)
+    harness.permission.canPostEvents = false
+    harness.runner.shortcutPressed()
+    #expect(reports == 1)
+}
+
+private let leftHalf = ActiveArea(x: 0, y: 0, width: 0.5, height: 1)
+
+@MainActor @Test func pointerEffectsReachTheSurface() {
+    let harness = SessionHarness(activeArea: leftHalf)
+    harness.runner.shortcutPressed()
+
+    harness.wakePointer()
+
+    #expect(harness.surface.log.contains("pointer.pointer"))
+    #expect(harness.surface.log.contains("mouse.on"))
+}
+
+@MainActor @Test func clickReleasesFocusToTheTarget() {
+    let harness = SessionHarness(activeArea: leftHalf)
+    harness.runner.shortcutPressed()
+    harness.wakePointer()
+
+    harness.surface.onClickThrough?()
+
+    #expect(harness.focus.releasedTo == chrome)
+    #expect(harness.surface.log.last == "hide")
+}
+
+@MainActor @Test(arguments: ExitPath.allCases) func everyExitLeavesTheNextSessionInKeypadMode(path: ExitPath) {
+    let harness = SessionHarness(isSticky: path.isSticky, activeArea: leftHalf)
+    path.run(on: harness) { harness.wakePointer() }
+
+    harness.runner.shortcutPressed()
+    let entries = harness.surface.log.count
+    let outside = TrackpadPoint(x: 0.8, y: 0.5)
+    harness.runner.receive(TouchSample(id: 2, phase: .began, point: outside, time: 1))
+    harness.runner.receive(TouchSample(id: 2, phase: .ended, point: outside, time: 1.1))
+
+    #expect(harness.surface.log.count == entries)
+    #expect(harness.runner.state == .capturing)
 }

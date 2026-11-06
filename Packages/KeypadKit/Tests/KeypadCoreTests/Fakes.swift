@@ -4,11 +4,14 @@
 final class FakeSurface: CaptureSurface {
     private(set) var log: [String] = []
     var isKey = true
+    var onClickThrough: (@MainActor () -> Void)?
 
     func show(_ hud: HUDState) { log.append("show") }
     func render(_ hud: HUDState) { log.append("render") }
     func hide() { log.append("hide") }
     func makeKey() { log.append("makeKey") }
+    func setPointer(_ mode: PointerMode) { log.append("pointer.\(mode)") }
+    func setMousePassThrough(_ state: MousePassThrough) { log.append("mouse.\(state)") }
 }
 
 @MainActor
@@ -18,6 +21,7 @@ final class FakeFocus: FocusController {
     var onInterruption: (@MainActor () -> Void)?
     private(set) var watching: AppIdentity?
     private(set) var returnedTo: AppIdentity?
+    private(set) var releasedTo: AppIdentity?
     private(set) var beginWatchingCount = 0
 
     private var handOffCompletions: [@MainActor (Bool) -> Void] = []
@@ -35,6 +39,7 @@ final class FakeFocus: FocusController {
     }
     func reclaim(completion: @escaping @MainActor (Bool) -> Void) { reclaimCompletions.append(completion) }
     func returnFocus(to target: AppIdentity) { returnedTo = target }
+    func releaseFocus(to target: AppIdentity) { releasedTo = target }
 
     func completeHandOff(_ succeeded: Bool) { handOffCompletions.last?(succeeded) }
     func completeHandOff(_ succeeded: Bool, issued index: Int) { handOffCompletions[index](succeeded) }
@@ -73,11 +78,33 @@ final class FakeNotices: NoticeSurface {
 @MainActor
 final class FakePermission: PermissionChecker {
     var canPostEvents = true
+    private(set) var settingsOpens = 0
 
     func requestPostEventAccess() {}
+    func openPermissionSettings() { settingsOpens += 1 }
 }
 
 @MainActor
 final class FakeSecureInput: SecureInputChecker {
     var isSecureInputOn = false
+}
+
+@MainActor
+final class FakeWatcher: PermissionWatcher {
+    private(set) var startCount = 0
+    private(set) var stopCount = 0
+
+    private var tick: (@MainActor () -> Void)?
+
+    func start(tick: @escaping @MainActor () -> Void) {
+        startCount += 1
+        self.tick = tick
+    }
+
+    func stop() {
+        stopCount += 1
+        tick = nil
+    }
+
+    func fire() { tick?() }
 }

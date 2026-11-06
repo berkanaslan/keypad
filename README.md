@@ -37,7 +37,7 @@ Or download the latest `Keypad-<version>.dmg` from [Releases](https://github.com
 **First launch:**
 - macOS asks to let Keypad control your computer. Keypad needs this Accessibility permission to type the number into other apps.
 - If you dismissed the prompt, open **System Settings › Privacy & Security › Accessibility** and turn Keypad on.
-- Then quit Keypad (⌘Q, or Quit in its Dock menu) and open it again. Keypad picks up the permission when it starts.
+- Keypad starts working as soon as the switch is on. There's no need to reopen it.
 
 Requires macOS 26 Tahoe or later, and a built-in trackpad or a Magic Trackpad.
 
@@ -60,7 +60,7 @@ Keypad stays open after Return, Tab or an arrow, ready for the next number, so y
 ## Features
 
 - **Works everywhere:** native apps, browsers, Electron apps and spreadsheets.
-- **Your part of the trackpad:** choose which area acts as the keypad.
+- **Your part of the trackpad:** choose which area acts as the keypad. The rest still works as a normal trackpad.
 - **Your shortcut:** record two modifiers, one of them ⌘ or ⌃, with a key, or a function key.
 - **Feedback you can feel:** four key sounds and three haptic patterns, each switchable.
 - **Your decimal separator:** the keypad shows and types `,` or `.` to match your keyboard layout.
@@ -86,11 +86,11 @@ The keypad stays open with your number and works again when you come back. It cl
 App Review rejects apps that use the Accessibility permission to type into other apps (Guideline 2.4.5), and that is exactly what Keypad does. So Keypad is free and open source instead.
 
 **Does it change how my trackpad works?**
-Only while the keypad is open: the pointer pauses until it closes. Esc always closes it.
+Only while the keypad is open. If the keypad uses the whole trackpad, the pointer pauses until it closes. If it uses part of it, slide a finger on the rest to move the pointer, scroll as usual, and click to close the keypad. A click discards a number you haven't typed yet. Esc always closes it.
 
 ## Build from source
 
-Requires Xcode 27 on macOS 26.
+Requires Xcode 27, which runs on macOS 26.6 or later.
 
 ```bash
 git clone https://github.com/berkanaslan/keypad.git

@@ -19,6 +19,7 @@ public final class SessionRunner {
     private var isDelivering: Bool { deliveringGeneration == generation }
 
     public var state: SessionState { engine.state }
+    public var onPermissionMissing: (@MainActor () -> Void)?
 
     public init(
         configuration: SessionConfiguration,
@@ -39,6 +40,7 @@ public final class SessionRunner {
         self.permission = permission
         self.secureInput = secureInput
         focus.onInterruption = { [weak self] in self?.send(.interrupted) }
+        surface.onClickThrough = { [weak self] in self?.clickReachedAnotherApp() }
     }
 
     /// Takes effect when the next session opens.
@@ -48,13 +50,15 @@ public final class SessionRunner {
 
     public func shortcutPressed() {
         guard !isDelivering else { return }
+        let canPostEvents = permission.canPostEvents
+        if !canPostEvents { onPermissionMissing?() }
         send(
             .shortcutPressed(
                 ShortcutContext(
                     frontmost: focus.frontmost,
                     isKeypadFrontmost: focus.isKeypadFrontmost,
                     isSecureInputOn: secureInput.isSecureInputOn,
-                    canPostEvents: permission.canPostEvents
+                    canPostEvents: canPostEvents
                 )
             )
         )
@@ -70,6 +74,14 @@ public final class SessionRunner {
         let swallowsKey = engine.state != .idle
         send(.key(key))
         return swallowsKey
+    }
+
+    public func openPermissionSettings() {
+        send(.permissionSettingsRequested)
+    }
+
+    public func clickReachedAnotherApp() {
+        send(.clickReachedAnotherApp)
     }
 
     private func send(_ event: SessionEvent) {
@@ -128,6 +140,14 @@ public final class SessionRunner {
                     send(.reclaimFinished(succeeded: succeeded && surface.isKey))
                 }
                 surface.makeKey()
+            case .openPermissionSettings:
+                permission.openPermissionSettings()
+            case .pointer(let mode):
+                surface.setPointer(mode)
+            case .mousePassThrough(let state):
+                surface.setMousePassThrough(state)
+            case .releaseFocus(let target):
+                focus.releaseFocus(to: target)
             }
         }
     }

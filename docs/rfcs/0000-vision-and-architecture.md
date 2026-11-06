@@ -47,7 +47,7 @@ Keypad fails, even if it technically works, if it:
 - looks custom-drawn instead of like something Apple made;
 - uses private APIs or leaves the App Sandbox;
 - interferes with normal trackpad use when no session is open;
-- leaves focus in the wrong app, loses a typed number or types into the wrong field;
+- leaves focus in the wrong app, loses a typed number or types into the wrong field (a deliberate click outside the active area discards the number, as Esc does);
 - hides what the user typed (the display never truncates);
 - collects or transmits user data.
 
@@ -84,6 +84,20 @@ A throwaway sandboxed spike (2026-10-26, macOS 26, a Mac with a Force Touch trac
 | F10 | `NSHapticFeedbackManager` plays only while a finger is on the surface. Firing on tap completion (finger lifted) does nothing. | Haptic on touch-down, sound on tap. |
 | F11 | `CGEvent` posting needs the Accessibility permission for posting events; Apple DTS says it is sandbox-compatible. macOS shows the system prompt only once per app; after that the user has to be guided to System Settings. | Onboarding must handle the "prompt already used" path. |
 
+A second throwaway spike (2026-11-06, macOS 27, tap to click on, signed with the team above) tested RFC-0005. The counts show how much evidence each finding has.
+
+| # | Finding | Consequence |
+|---|---|---|
+| F12 | A panel with `ignoresMouseEvents = true` received no `NSTouch` when the finger landed, even as the key window of the active app (0 touches in 43 clicks). | The panel must accept mouse events at the moment a finger lands. |
+| F13 | Setting `ignoresMouseEvents = true` with a finger down kept touches arriving until the finger lifted (48 touches, up to 130 samples each), while presses, a drag and scrolling reached the window below. | Mouse input can pass through for the length of a touch. |
+| F14 | `CGAssociateMouseAndMouseCursorPosition` can switch during a touch. The pointer stayed put after freezing (23 of 23), and 5 wakes logged every 20 ms showed no stored movement, though the tester reported a jump. | The pointer can be released and frozen by touches; QA checks how waking feels. |
+| F15 | A tap-to-click click arrives 3–9 ms after the finger lifts (33 taps). | A short grace period after the lift is enough. |
+| F16 | 6 of 8 clicks made during pass-through reached the app, and each activated it within 20 ms. The other 2 stayed on the panel: a press 28 ms after the finger landed, and a click with no touch reported. With the pointer frozen and the panel ignoring the mouse, 34 of 43 clicks reached another app without activating it; the cause is unknown. | Close the session on the click, not on activation. A missed click is harmless. |
+| F17 | A two-finger scroll that starts on the panel stays with it until the fingers lift. Of 3 flicks that reached the app, momentum ran to the end in 2 and was cut off in 1, when the panel took mouse input back. | The first scroll only wakes the pointer; momentum can stop early. |
+| F18 | In a running process, `AXIsProcessTrusted` followed the System Settings switch within a second in both directions (5 of 5), and an active event tap probe did too (4 of 4), with no prompt. `CGPreflightPostEventAccess` never changed. | `AXIsProcessTrusted` is the live permission signal. |
+| F19 | A posted key reached TextEdit right after the grant, with no relaunch, and stopped right after the switch went off (once each). | Keypad doesn't need to relaunch after a grant. |
+| F20 | `x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility` opened the Accessibility pane from a sandboxed app in `/Applications`, with the app listed. | The HUD can link straight to the pane. |
+
 App Review rejects apps that post events under Guideline 2.4.5 ("Accessibility features for non-accessibility purposes"), which is why Keypad ships outside the Mac App Store (RFC-0004).
 
 ## 8. User experience (v1)
@@ -98,7 +112,7 @@ App Review rejects apps that post events under Guideline 2.4.5 ("Accessibility f
 
 1. The user presses the shortcut (default ⌃⌥K, configurable) in any app.
 2. Keypad remembers the frontmost app, activates, and shows a full-screen capture panel on the display under the pointer. A Liquid Glass HUD in the centre shows the target app (icon and name), the number display, the key grid and a one-line hint ("Return, Tab or arrows to type · Esc to close").
-3. The pointer freezes. Clicks, scrolls and gestures are swallowed; nothing reaches the app underneath.
+3. The pointer freezes. Clicks, scrolls and gestures are swallowed; nothing reaches the app underneath. With a smaller active area, the rest of the trackpad can still drive the pointer (§8.5).
 4. Touch-down on a cell plays the haptic. A completed tap plays the sound, applies the key's action and briefly highlights the key.
 5. The number builds up in the HUD display. Backspace (the ⌫ cell or the Delete key) removes the last character. Digit, decimal and Delete keys on the physical keyboard also edit the number; other keys are ignored unless they commit (§8.3).
 6. The display never truncates: it widens first, then scales the text down, then wraps.
@@ -125,14 +139,14 @@ App Review rejects apps that post events under Guideline 2.4.5 ("Accessibility f
 
 ### 8.5 Active trackpad area
 
-The user chooses which part of the physical trackpad acts as the keypad (size and position, stored as a normalized rectangle). Touches outside it are ignored. Settings shows a trackpad-shaped preview with handles. The default is the whole surface.
+The user chooses which part of the physical trackpad acts as the keypad (size and position, stored as a normalized rectangle). A stationary tap outside it is ignored. A finger that travels outside it wakes the pointer: the trackpad then works normally there, and a click closes the session (RFC-0005 §2). Settings shows a trackpad-shaped preview with handles. The default is the whole surface.
 
 ### 8.6 Onboarding and permission
 
-On first launch an onboarding window walks through four steps:
+On first launch an onboarding window walks through four steps. RFC-0013 builds this flow; RFC-0005 already covers the polling.
 
 1. What Keypad does: one sentence and an illustration of the shortcut.
-2. The Accessibility permission: why it's needed (Keypad types numbers for you), then `CGRequestPostEventAccess()`, polling `CGPreflightPostEventAccess()`. If the system prompt doesn't appear because it was already used, an "Open System Settings" button deep-links to Privacy & Security → Accessibility, with instructions for adding the app.
+2. The Accessibility permission: why it's needed (Keypad types numbers for you), then `CGRequestPostEventAccess()`, polling `AXIsProcessTrusted()` (RFC-0005 §3). If the system prompt doesn't appear because it was already used, an "Open System Settings" button deep-links to Privacy & Security → Accessibility, with instructions for adding the app.
 3. Launch at login, as a pre-selected toggle.
 4. Try it: press the shortcut and type a number into a practice field.
 
@@ -247,10 +261,11 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 | 0002 | Keypad session | Hotkey, capture panel, touches → taps → cells, buffer, HUD, commit, sticky, focus hand-off |
 | 0003 | Feedback and settings | Haptic patterns and key sounds; Settings window, persistence, Dock menu and disabled state, launch at login, shortcut recorder, active-area editor |
 | 0004 | Open source release | MIT licence, privacy scrub, Developer ID signing and notarization, GitHub Releases, Homebrew tap, README as product page, app icon (absorbs 0006 and 0007) |
-| 0005 | Onboarding and permissions | First-run flow, permission states, recovery |
+| 0005 | Permission recovery and trackpad pass-through | Permission states and recovery, the missing-permission HUD, the trackpad outside the active area |
 | 0006 | — | Merged into RFC-0004 |
 | 0007 | — | Merged into RFC-0004 |
-| — | **1.0** | Proposed release cut after RFC-0005; the PM decides |
+| 0013 | First-run onboarding | First-run flow, the permission row in Settings |
+| — | **1.0** | Proposed release cut after RFC-0013; the PM decides |
 | 0008 | Layout editor | Custom grids with drag and drop |
 | 0009 | Calculator layout | Arithmetic with `Decimal`, live result in the HUD |
 | 0010 | Per-app layouts | User-assigned layout per frontmost app |
@@ -274,6 +289,7 @@ Swift 6 strict concurrency. UI and system adapters are `@MainActor`; Core types 
 | Volume and brightness gestures in a later RFC | PM |
 | One-time paid, no in-app purchases | PM; superseded by RFC-0004 (2026-10-30) |
 | Free, MIT-licensed open source outside the Mac App Store, no revenue path; Homebrew tap; README as product page; optional keypad.berkan.io; Aluminum icon | PM, 2026-10-30 (RFC-0004) |
+| `v0.2.0` bundles permission recovery and trackpad pass-through; a click outside the active area closes the session; Keypad recovers from a grant with no relaunch; first-run onboarding moves to RFC-0013 | PM, 2026-11-05 and 2026-11-06 (RFC-0005) |
 | macOS 26 minimum, Swift 6, SwiftUI with AppKit where needed | Development lead |
 | Default shortcut ⌃⌥K | Development lead |
 | "3×3 standard" read as three columns plus a bottom row | Development lead |

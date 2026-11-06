@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSHostingView(rootView: NoticeView(notice: notice))
     }
     private let runner: SessionRunner
+    private let recovery: PermissionRecovery
     private let settings: SettingsModel
     private lazy var settingsWindow = SettingsWindowController(model: settings)
 
@@ -39,6 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             permission: permission,
             secureInput: CarbonSecureInputChecker()
         )
+        recovery = PermissionRecovery(permission: permission, watcher: TimerPermissionWatcher(), notices: notices)
         settings = SettingsModel(
             store: store,
             hotkey: hotkey,
@@ -53,8 +55,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !permission.canPostEvents {
             permission.requestPostEventAccess()
         }
+        recovery.watchIfMissing()
+        runner.onPermissionMissing = { [weak recovery] in recovery?.watchIfMissing() }
         hotkey.onPress = { [weak runner] in runner?.shortcutPressed() }
         surface.onTouch = { [weak runner] sample in runner?.receive(sample) }
+        surface.onOpenSettings = { [weak runner] in runner?.openPermissionSettings() }
         keyboard.start { [weak runner] key in runner?.receive(key) ?? false }
         settings.onChange = { [weak self] changed in self?.apply(changed) }
         settings.start()
