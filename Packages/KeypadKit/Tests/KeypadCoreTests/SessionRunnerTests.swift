@@ -338,3 +338,17 @@ enum ExitPath: CaseIterable {
     #expect(harness.permission.settingsOpens == 1)
     #expect(harness.surface.log.last == "hide")
 }
+
+@MainActor @Test func shortcutReportsAMissingPermission() {
+    let harness = SessionHarness()
+    var reports = 0
+    harness.runner.onPermissionMissing = { reports += 1 }
+
+    harness.runner.shortcutPressed()
+    #expect(reports == 0)
+
+    harness.runner.receive(.escape)
+    harness.permission.canPostEvents = false
+    harness.runner.shortcutPressed()
+    #expect(reports == 1)
+}

@@ -83,3 +83,23 @@ final class FakePermission: PermissionChecker {
 final class FakeSecureInput: SecureInputChecker {
     var isSecureInputOn = false
 }
+
+@MainActor
+final class FakeWatcher: PermissionWatcher {
+    private(set) var startCount = 0
+    private(set) var stopCount = 0
+
+    private var tick: (@MainActor () -> Void)?
+
+    func start(tick: @escaping @MainActor () -> Void) {
+        startCount += 1
+        self.tick = tick
+    }
+
+    func stop() {
+        stopCount += 1
+        tick = nil
+    }
+
+    func fire() { tick?() }
+}

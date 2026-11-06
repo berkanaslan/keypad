@@ -143,10 +143,10 @@ The user chooses which part of the physical trackpad acts as the keypad (size an
 
 ### 8.6 Onboarding and permission
 
-On first launch an onboarding window walks through four steps:
+On first launch an onboarding window walks through four steps. RFC-0013 builds this flow; RFC-0005 already covers the polling.
 
 1. What Keypad does: one sentence and an illustration of the shortcut.
-2. The Accessibility permission: why it's needed (Keypad types numbers for you), then `CGRequestPostEventAccess()`, polling `CGPreflightPostEventAccess()`. If the system prompt doesn't appear because it was already used, an "Open System Settings" button deep-links to Privacy & Security → Accessibility, with instructions for adding the app.
+2. The Accessibility permission: why it's needed (Keypad types numbers for you), then `CGRequestPostEventAccess()`, polling `AXIsProcessTrusted()` (RFC-0005 §3). If the system prompt doesn't appear because it was already used, an "Open System Settings" button deep-links to Privacy & Security → Accessibility, with instructions for adding the app.
 3. Launch at login, as a pre-selected toggle.
 4. Try it: press the shortcut and type a number into a practice field.
 

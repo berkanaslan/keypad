@@ -37,7 +37,7 @@ Or download the latest `Keypad-<version>.dmg` from [Releases](https://github.com
 **First launch:**
 - macOS asks to let Keypad control your computer. Keypad needs this Accessibility permission to type the number into other apps.
 - If you dismissed the prompt, open **System Settings › Privacy & Security › Accessibility** and turn Keypad on.
-- Then quit Keypad (⌘Q, or Quit in its Dock menu) and open it again. Keypad picks up the permission when it starts.
+- Keypad starts working as soon as the switch is on. There's no need to reopen it.
 
 Requires macOS 26 Tahoe or later, and a built-in trackpad or a Magic Trackpad.
 

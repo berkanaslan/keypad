@@ -1,4 +1,5 @@
 import AppKit
+import ApplicationServices
 import CoreGraphics
 import KeypadCore
 
@@ -10,8 +11,9 @@ public final class PostEventPermission: PermissionChecker {
 
     public init() {}
 
+    /// `CGPreflightPostEventAccess` keeps its first answer for the life of the process (RFC-0000 F18).
     public var canPostEvents: Bool {
-        CGPreflightPostEventAccess()
+        AXIsProcessTrusted()
     }
 
     public func requestPostEventAccess() {

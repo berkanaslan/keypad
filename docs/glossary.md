@@ -17,7 +17,7 @@
 | HUD | The Liquid Glass overlay in the middle of the capture panel: target app, number display, key grid and hint. |
 | Key sound | One of Keypad's four bundled sounds played when a tap completes: Wood (default), Soft, Deep or Crisp. |
 | Layout | A grid of rows and columns whose cells map to actions, stored as data. |
-| Notice | A short, non-interactive message Keypad shows instead of opening a session, e.g. when secure input is on. |
+| Notice | A short, non-interactive message Keypad shows without opening a session, e.g. when secure input is on or the permission has just been granted. |
 | Reclaim | Re-activating Keypad and its capture panel after a commit in a sticky session. |
 | Session | The time between opening Keypad with its shortcut and closing it with Esc, the shortcut, a commit in a non-sticky session, or another app becoming active. |
 | Sticky | The session mode, on by default, in which the session stays open after a commit. |

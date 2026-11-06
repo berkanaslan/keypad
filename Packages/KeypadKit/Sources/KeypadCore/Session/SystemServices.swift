@@ -48,6 +48,13 @@ public protocol PermissionChecker {
 }
 
 @MainActor
+public protocol PermissionWatcher: AnyObject {
+    /// Calls `tick` about once a second until `stop()`.
+    func start(tick: @escaping @MainActor () -> Void)
+    func stop()
+}
+
+@MainActor
 public protocol SecureInputChecker {
     var isSecureInputOn: Bool { get }
 }

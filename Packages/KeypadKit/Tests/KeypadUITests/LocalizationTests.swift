@@ -14,6 +14,7 @@ import Testing
     ("hud.backspace.accessibilityLabel", "Sil"),
     ("hud.target.accessibilityLabel", "%@ uygulamasına yazılıyor"),
     ("notice.secureInput", "Güvenli giriş açıkken Keypad yazamaz, örneğin bir şifre alanında"),
+    ("notice.permissionGranted", "Keypad artık diğer uygulamalara yazabilir"),
     ("settings.window.title", "Keypad Ayarları"),
     ("settings.open", "Ayarlar…"),
     ("settings.tab.general", "Genel"),

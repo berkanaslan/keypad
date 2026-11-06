@@ -19,6 +19,7 @@ public final class SessionRunner {
     private var isDelivering: Bool { deliveringGeneration == generation }
 
     public var state: SessionState { engine.state }
+    public var onPermissionMissing: (@MainActor () -> Void)?
 
     public init(
         configuration: SessionConfiguration,
@@ -48,13 +49,15 @@ public final class SessionRunner {
 
     public func shortcutPressed() {
         guard !isDelivering else { return }
+        let canPostEvents = permission.canPostEvents
+        if !canPostEvents { onPermissionMissing?() }
         send(
             .shortcutPressed(
                 ShortcutContext(
                     frontmost: focus.frontmost,
                     isKeypadFrontmost: focus.isKeypadFrontmost,
                     isSecureInputOn: secureInput.isSecureInputOn,
-                    canPostEvents: permission.canPostEvents
+                    canPostEvents: canPostEvents
                 )
             )
         )
