@@ -120,7 +120,7 @@ macOS input ──▶ adapters (KeypadSystem) ──SessionEvent──▶ Sessio
 - Top to bottom: the target app (icon and name) · the number display · the key grid generated from the `Layout` · a hint (it may wrap to two lines in Turkish). The whole HUD sits on a system glass card so its text stays readable over the dimmed app behind it; its width is fixed (328 pt).
 - The display never truncates (RFC-0000 §8.2): it spans the HUD's width, scales the text down to 60 % when needed, then wraps and the HUD grows taller.
 - The decimal cell shows the separator from `DecimalSeparatorProvider`.
-- When the post-event permission is missing, the hint line is replaced by a warning ("Keypad needs Accessibility access to type") and commit keys do nothing: the number stays in the buffer until the user presses Esc. Permission is read when the session opens, so access granted in System Settings applies from the next session.
+- When the post-event permission is missing, the hint line is replaced by a warning ("Keypad needs Accessibility access to type") and commit keys do nothing: the number stays in the buffer until the user presses Esc. Permission is read when the session opens, so access granted in System Settings applies from the next session. RFC-0005 §4 replaces this behaviour.
 - Light and dark mode, Reduce Transparency and Reduce Motion come from the system materials; the only animation is the key highlight (≈ 0.18 s), which Reduce Motion turns into an instant change.
 - VoiceOver: the HUD's elements carry labels; announcing taps is out of scope.
 

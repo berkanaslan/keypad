@@ -10,6 +10,7 @@ import Testing
 @Test(arguments: [
     ("hud.hint", "Yazmak için Return, Tab veya oklar · Kapatmak için Esc"),
     ("hud.permissionMissing", "Keypad'in yazabilmesi için Erişilebilirlik izni gerekiyor"),
+    ("hud.permission.openSettings", "Sistem Ayarları'nı Aç"),
     ("hud.backspace.accessibilityLabel", "Sil"),
     ("hud.target.accessibilityLabel", "%@ uygulamasına yazılıyor"),
     ("notice.secureInput", "Güvenli giriş açıkken Keypad yazamaz, örneğin bir şifre alanında"),

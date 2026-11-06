@@ -4,6 +4,9 @@ import KeypadCore
 /// Reports trackpad touches as samples and swallows every other input, so nothing reaches the app underneath.
 final class TouchCaptureView: NSView {
     var onSample: ((TouchSample) -> Void)?
+    /// Where a click must reach the view below, in this view's coordinates. Kept as small as possible: a touch landing
+    /// over another view would not reach this one (RFC-0000 F12).
+    var clickThroughRect: (() -> NSRect?)?
 
     private var identifiers: [NSObject: Int] = [:]
     private var nextIdentifier = 0
@@ -20,6 +23,11 @@ final class TouchCaptureView: NSView {
     }
 
     override var acceptsFirstResponder: Bool { true }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        if let rect = clickThroughRect?(), rect.contains(convert(point, from: superview)) { return nil }
+        return super.hitTest(point)
+    }
 
     /// Identifiers are never reused, so a touch that was in flight cannot be mistaken for a later one.
     func forgetTouches() {

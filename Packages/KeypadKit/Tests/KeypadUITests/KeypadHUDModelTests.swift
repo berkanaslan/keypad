@@ -9,13 +9,14 @@ struct KeypadHUDModelTests {
     private let first = Layout.numpad.cells[0]
     private let second = Layout.numpad.cells[1]
 
-    private func state(highlighting cell: Layout.Cell?) -> HUDState {
+    private func state(highlighting cell: Layout.Cell?, nudges: Int = 0) -> HUDState {
         HUDState(
             target: AppIdentity(processID: 1, bundleIdentifier: nil, name: "Notes"),
             layout: .numpad,
             buffer: EntryBuffer(),
             highlightedCell: cell,
-            showsPermissionWarning: false
+            showsPermissionWarning: false,
+            permissionNudges: nudges
         )
     }
 
@@ -24,6 +25,26 @@ struct KeypadHUDModelTests {
         while !condition() && ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(10))
         }
+    }
+
+    @Test func aNudgeEmphasizesTheWarningBriefly() async {
+        let model = KeypadHUDModel(warningEmphasis: .milliseconds(20))
+
+        model.apply(state(highlighting: nil, nudges: 1))
+
+        #expect(model.isWarningEmphasized)
+        await wait { !model.isWarningEmphasized }
+        #expect(!model.isWarningEmphasized)
+    }
+
+    @Test func anUnchangedNudgeCountEmphasizesNothing() async {
+        let model = KeypadHUDModel(warningEmphasis: .milliseconds(20))
+        model.apply(state(highlighting: nil, nudges: 1))
+        await wait { !model.isWarningEmphasized }
+
+        model.apply(state(highlighting: nil, nudges: 1))
+
+        #expect(!model.isWarningEmphasized)
     }
 
     @Test func applyStoresTheStateAndItsHighlight() {

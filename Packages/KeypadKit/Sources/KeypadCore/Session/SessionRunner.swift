@@ -72,6 +72,10 @@ public final class SessionRunner {
         return swallowsKey
     }
 
+    public func openPermissionSettings() {
+        send(.permissionSettingsRequested)
+    }
+
     private func send(_ event: SessionEvent) {
         let previous = engine.state
         let effects = engine.handle(event)
@@ -128,6 +132,8 @@ public final class SessionRunner {
                     send(.reclaimFinished(succeeded: succeeded && surface.isKey))
                 }
                 surface.makeKey()
+            case .openPermissionSettings:
+                permission.openPermissionSettings()
             }
         }
     }

@@ -279,18 +279,6 @@ private func lastRender(in effects: [SessionEffect]) -> HUDState? {
         #expect(effects == [.hideCapture(returnFocusTo: chrome)])
     }
 
-    @Test mutating func shortcutWithPendingNumberWaitsForPermission() {
-        open(&engine, canPost: false)
-        tapSeven(&engine)
-
-        let effects = engine.handle(.shortcutPressed(context()))
-
-        #expect(effects.contains(.handOff(to: chrome)) == false)
-        #expect(engine.state == .capturing)
-        #expect(lastRender(in: effects)?.buffer.display(decimalSeparator: ".") == "7")
-        #expect(lastRender(in: effects)?.showsPermissionWarning == true)
-    }
-
     @Test mutating func shortcutWithEmptyBufferClosesWithoutPermission() {
         open(&engine, canPost: false)
 
@@ -358,15 +346,70 @@ private func lastRender(in effects: [SessionEffect]) -> HUDState? {
         #expect(engine.state == .idle)
     }
 
-    @Test mutating func missingPermissionBlocksCommitAndWarns() {
+    @Test mutating func tapWhilePermissionIsMissingOnlyNudges() {
+        open(&engine, canPost: false)
+
+        let effects = tap(&engine, x: 0.1, y: 0.95)
+
+        let hud = lastRender(in: effects)
+        #expect(hud?.buffer.isEmpty == true)
+        #expect(hud?.permissionNudges == 1)
+        #expect(hud?.highlightedCell == nil)
+        #expect(!effects.contains(.feedback(.touchDown)))
+        #expect(!effects.contains(.feedback(.keyAccepted)))
+    }
+
+    @Test(arguments: [
+        KeyInput.digit(7), .decimalSeparator, .deleteBackward, .commit(.tab), .commit(.shiftTab), .commit(.arrow(.up)),
+    ])
+    mutating func keyWhilePermissionIsMissingOnlyNudges(key: KeyInput) {
+        open(&engine, canPost: false)
+
+        let hud = lastRender(in: engine.handle(.key(key)))
+
+        #expect(hud?.buffer.isEmpty == true)
+        #expect(hud?.permissionNudges == 1)
+        #expect(engine.state == .capturing)
+    }
+
+    @Test(arguments: [CommitKey.returnKey, .shiftReturn, .keypadEnter])
+    mutating func returnOpensSettingsWhilePermissionIsMissing(key: CommitKey) {
+        open(&engine, canPost: false)
+
+        #expect(engine.handle(.key(.commit(key))) == [.hideCapture(returnFocusTo: nil), .openPermissionSettings])
+        #expect(engine.state == .idle)
+    }
+
+    @Test mutating func nudgesCountUpAndResetWithTheNextSession() {
         open(&engine, canPost: false)
         tapSeven(&engine)
 
-        let effects = engine.handle(.key(.commit(.tab)))
+        #expect(lastRender(in: tap(&engine, x: 0.1, y: 0.95))?.permissionNudges == 2)
 
-        #expect(effects.contains(.handOff(to: chrome)) == false)
-        #expect(lastRender(in: effects)?.showsPermissionWarning == true)
-        #expect(lastRender(in: effects)?.buffer.display(decimalSeparator: ".") == "7")
+        _ = engine.handle(.key(.escape))
+        guard case .showCapture(let hud) = open(&engine, canPost: false).first else {
+            Issue.record("expected showCapture first")
+            return
+        }
+        #expect(hud.permissionNudges == 0)
+    }
+
+    @Test mutating func settingsRequestClosesAndOpensSettings() {
+        open(&engine, canPost: false)
+
+        #expect(
+            engine.handle(.permissionSettingsRequested) == [.hideCapture(returnFocusTo: nil), .openPermissionSettings])
+        #expect(engine.state == .idle)
+    }
+
+    @Test mutating func settingsRequestAfterCloseDoesNothing() {
+        #expect(engine.handle(.permissionSettingsRequested) == [])
+    }
+
+    @Test mutating func settingsRequestWithThePermissionDoesNothing() {
+        open(&engine)
+
+        #expect(engine.handle(.permissionSettingsRequested) == [])
         #expect(engine.state == .capturing)
     }
 }

@@ -11,6 +11,11 @@ final class HUDCaptureSurface: CaptureSurface {
         set { capturePanel.onTouch = newValue }
     }
 
+    var onOpenSettings: (@MainActor () -> Void)? {
+        get { model.onOpenSettings }
+        set { model.onOpenSettings = newValue }
+    }
+
     var isKey: Bool { capturePanel.isKey }
 
     private let model = KeypadHUDModel()
@@ -20,11 +25,12 @@ final class HUDCaptureSurface: CaptureSurface {
     init(decimalSeparator: DecimalSeparatorProvider) {
         separatorProvider = decimalSeparator
         capturePanel = CapturePanelController(content: NSHostingView(rootView: KeypadHUDView(model: model)))
+        model.onSettingsButtonFrame = { [weak capturePanel] frame in capturePanel?.setClickThrough(frame) }
     }
 
     func show(_ hud: HUDState) {
         apply(hud)
-        capturePanel.show()
+        capturePanel.show(freezesPointer: !hud.showsPermissionWarning)
     }
 
     func render(_ hud: HUDState) {

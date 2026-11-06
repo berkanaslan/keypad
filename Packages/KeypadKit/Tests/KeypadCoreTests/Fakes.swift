@@ -73,8 +73,10 @@ final class FakeNotices: NoticeSurface {
 @MainActor
 final class FakePermission: PermissionChecker {
     var canPostEvents = true
+    private(set) var settingsOpens = 0
 
     func requestPostEventAccess() {}
+    func openPermissionSettings() { settingsOpens += 1 }
 }
 
 @MainActor
