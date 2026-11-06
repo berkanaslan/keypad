@@ -1,5 +1,6 @@
 public enum Notice: Equatable, Sendable {
     case secureInput
+    case permissionGranted
 }
 
 public enum FeedbackEvent: Equatable, Sendable {

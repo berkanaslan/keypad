@@ -161,6 +161,22 @@
         }
       }
     },
+    "notice.permissionGranted" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keypad can now type into other apps"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keypad artık diğer uygulamalara yazabilir"
+          }
+        }
+      }
+    },
     "notice.secureInput" : {
       "localizations" : {
         "en" : {

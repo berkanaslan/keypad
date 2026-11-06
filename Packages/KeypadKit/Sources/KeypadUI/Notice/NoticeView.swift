@@ -23,6 +23,8 @@ public struct NoticeView: View {
         switch notice {
         case .secureInput:
             Text("notice.secureInput", bundle: .keypadUI)
+        case .permissionGranted:
+            Text("notice.permissionGranted", bundle: .keypadUI)
         }
     }
 }
